@@ -1,0 +1,219 @@
+/* client/src/pages/StudentSchedule.css */
+
+:root {
+  --primary-gradient: linear-gradient(135deg, #0033cc 0%, #2563eb 100%);
+  --glass-bg: rgba(255, 255, 255, 0.95);
+  --shadow-sm: 0 2px 4px rgba(148, 163, 184, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(148, 163, 184, 0.1), 0 2px 4px -1px rgba(148, 163, 184, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(148, 163, 184, 0.1), 0 4px 6px -2px rgba(148, 163, 184, 0.05);
+  --shadow-float: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.schedule-container {
+  display: flex;
+  gap: 24px;
+  /* Bỏ chiều cao cố định để tránh bị cắt nội dung nếu màn hình nhỏ */
+  min-height: calc(100vh - 120px); 
+  font-family: 'Inter', sans-serif;
+  padding-bottom: 20px;
+}
+
+/* --- KHUNG LỊCH (BÊN TRÁI) --- */
+.calendar-card {
+  flex: 2;
+  background: var(--glass-bg);
+  border-radius: 24px;
+  padding: 24px 32px; /* Padding ngang rộng hơn chút */
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255,255,255,0.5);
+  height: fit-content; /* Ôm vừa nội dung */
+}
+
+/* Header: Chứa Tháng/Năm và Nút điều hướng */
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px; /* Giảm margin bottom để legend xích lại gần */
+}
+
+.calendar-header h2 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 1.5rem; /* Giảm size chút cho tinh tế */
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  text-transform: capitalize; /* Viết hoa chữ cái đầu */
+}
+
+/* Nút điều hướng */
+.month-nav-btn {
+  background: white;
+  border: none;
+  width: 32px; height: 32px; /* Nhỏ lại chút */
+  border-radius: 8px;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  color: #64748b;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+
+.month-nav-btn:hover {
+  transform: translateY(-2px);
+  color: #0033cc;
+  background: #eff6ff;
+}
+
+/* Chú thích (Legend) */
+.legend {
+  display: flex; 
+  gap: 20px; 
+  font-size: 0.8rem; 
+  color: #64748b; 
+  font-weight: 500;
+  margin-bottom: 20px; /* Cách phần grid một đoạn vừa phải */
+}
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dot.completed { background-color: #cbd5e1; }
+.dot.upcoming { background: var(--primary-gradient); box-shadow: 0 0 6px rgba(37, 99, 235, 0.4); }
+
+/* Grid Lịch */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px; /* Giảm gap để các ô vuông khít đẹp hơn */
+  flex: 1;
+}
+
+.day-name {
+  text-align: center;
+  font-weight: 700;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+/* Ô ngày (QUAN TRỌNG: SỬA THÀNH HÌNH VUÔNG) */
+.day-cell {
+  background: white;
+  border-radius: 12px; /* Bo góc ít hơn để ra dáng hình vuông */
+  aspect-ratio: 1 / 1; /* Tự động ép thành hình vuông */
+  padding: 8px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Số ngày nằm trên cùng */
+  align-items: center;         /* Canh giữa chấm tròn */
+  border: 1px solid transparent;
+}
+
+/* Hiệu ứng Hover */
+.day-cell:not(.empty):hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
+  border-color: #e2e8f0;
+  z-index: 10;
+}
+
+.day-cell.empty { background: transparent; cursor: default; }
+
+/* Trạng thái Selected */
+.day-cell.selected {
+  background: var(--primary-gradient);
+  box-shadow: var(--shadow-float);
+  color: white;
+  z-index: 10;
+}
+
+.day-number {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #334155;
+  margin-bottom: 4px; /* Đẩy chấm tròn xuống xíu */
+}
+
+.day-cell.selected .day-number { color: white; }
+
+/* Dấu chấm trạng thái */
+.day-markers { display: flex; gap: 3px; justify-content: center; }
+.day-markers .dot { width: 5px; height: 5px; } /* Chấm nhỏ lại cho tinh tế */
+.day-cell.selected .day-markers .dot { background: white; opacity: 0.9; }
+
+/* --- KHUNG CHI TIẾT (BÊN PHẢI) - GIỮ NGUYÊN HOẶC CHỈNH NHẸ --- */
+.details-panel {
+  flex: 1;
+  background: white;
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255,255,255,0.5);
+  height: fit-content;
+  position: relative;
+  overflow: hidden;
+}
+
+.details-panel::before {
+  content: '';
+  position: absolute;
+  top: -50px; right: -50px;
+  width: 150px; height: 150px;
+  background: radial-gradient(circle, rgba(37,99,235,0.1) 0%, rgba(255,255,255,0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.selected-date-title {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 1.1rem; font-weight: 700; color: #64748b;
+  margin-bottom: 24px; padding-bottom: 15px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* Card buổi học */
+.session-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  position: relative;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid #f1f5f9;
+  overflow: hidden;
+}
+
+.session-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateX(4px);
+}
+
+.session-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
+}
+.session-card.completed::before { background: #cbd5e1; }
+.session-card.upcoming::before { background: var(--primary-gradient); }
+
+.status-badge {
+  position: absolute; top: 16px; right: 16px;
+  font-size: 0.7rem; padding: 6px 12px; border-radius: 20px;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.status-badge.completed { background: #f1f5f9; color: #94a3b8; }
+.status-badge.upcoming { background: #eff6ff; color: #2563eb; }
+
+.session-time { font-size: 0.85rem; font-weight: 600; color: #64748b; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;}
+.session-course { font-size: 1.1rem; font-weight: 800; color: #1e293b; margin-bottom: 8px; line-height: 1.4; }
+.session-info { font-size: 0.9rem; color: #475569; display: flex; flex-direction: column; gap: 4px; }
+.session-info div { display: flex; align-items: center; gap: 8px; }
+
+.no-sessions { margin-top: 40px; text-align: center; color: #94a3b8; }
+.no-sessions-icon { font-size: 3rem; margin-bottom: 10px; display: block; opacity: 0.5; }
