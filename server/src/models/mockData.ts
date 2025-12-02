@@ -50,6 +50,15 @@ export enum CourseStatus {
   WITHDRAWN = "Withdrawn"
 }
 
+// Thêm enum cho Ngành (Major)
+export enum Major {
+  CS = "Computer Science",
+  CE = "Computer Engineering",
+  EE = "Electrical Engineering",
+  BA = "Business Administration",
+  ALL = "General"
+}
+
 export interface GradeComponent {
   name: string;   // VD: Midterm, Final, Assignment
   weight: number; // VD: 30 (tức là 30%)
@@ -62,6 +71,19 @@ export interface StudentCoursePerformance {
   status: CourseStatus;
   components: GradeComponent[];
   // Điểm tổng kết sẽ được tính toán tự động ở Controller, không cần lưu cứng
+}
+
+// Interface Tài liệu
+export interface Material {
+  id: string;
+  title: string;
+  author: string;
+  sharedBy: string; // Tên Tutor hoặc "HCMUT LIBRARY"
+  description: string;
+  majors: Major[]; // Một tài liệu có thể thuộc nhiều ngành
+  coverImage: string; // URL ảnh bìa
+  downloadUrl: string; // URL file
+  previewPages: number; // Số trang cho phép xem trước
 }
 
 
@@ -175,5 +197,41 @@ export const GRADES: StudentCoursePerformance[] = [
     courseId: "CO1023", // Intro to Computing
     status: CourseStatus.WITHDRAWN,
     components: []
+  }
+];
+
+export const MATERIALS: Material[] = [
+  {
+    id: "MAT01",
+    title: "Computer Networking: A Top-Down Approach",
+    author: "James F. Kurose, Keith Ross",
+    sharedBy: "HCMUT LIBRARY",
+    description: "Introduces this complex subject in a top-down manner, familiarizing you with important concepts early in your study.",
+    majors: [Major.CS, Major.CE],
+    coverImage: "https://m.media-amazon.com/images/I/71p783f-JCL._AC_UF1000,1000_QL80_.jpg", // Link ảnh mạng
+    downloadUrl: "#",
+    previewPages: 5
+  },
+  {
+    id: "MAT02",
+    title: "Introduction to Algorithms (4th Edition)",
+    author: "Thomas H. Cormen",
+    sharedBy: "Dr. John Smith",
+    description: "A comprehensive update of the leading algorithms text, with new material on matchings in bipartite graphs, online algorithms, and machine learning.",
+    majors: [Major.CS],
+    coverImage: "https://m.media-amazon.com/images/I/61Mw06x2XcL._AC_UF1000,1000_QL80_.jpg",
+    downloadUrl: "#",
+    previewPages: 5
+  },
+  {
+    id: "MAT03",
+    title: "Digital Logic Design Principles",
+    author: "Norman Balabanian",
+    sharedBy: "HCMUT LIBRARY",
+    description: "Foundation of digital systems and computer architecture.",
+    majors: [Major.CE, Major.EE],
+    coverImage: "https://m.media-amazon.com/images/I/51+6J7+8L+L.jpg",
+    downloadUrl: "#",
+    previewPages: 3
   }
 ];

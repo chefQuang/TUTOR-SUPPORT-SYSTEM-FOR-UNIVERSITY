@@ -113,12 +113,18 @@ const StudentPerformance = () => {
             
             {course.status !== 'Withdrawn' && (
               <div className="perf-score-row">
-                <div className="big-score">{course.finalScore}</div>
-                <div className="letter-grade">{course.letterGrade}</div>
+                {/* Chỉ hiện điểm nếu KHÔNG PHẢI là Studying */}
+                {course.status !== 'Studying' ? (
+                  <>
+                    <div className="big-score">{course.finalScore}</div>
+                    <div className="letter-grade">{course.letterGrade}</div>
+                  </>
+                ) : (
+                  <div style={{color: '#64748b', fontStyle: 'italic', fontSize: '0.9rem'}}>
+                    Grade pending...
+                  </div>
+                )}
               </div>
-            )}
-            {course.status === 'Withdrawn' && (
-              <div style={{marginTop: '20px', color: '#94a3b8', fontStyle: 'italic'}}>No grades available</div>
             )}
           </div>
         ))}

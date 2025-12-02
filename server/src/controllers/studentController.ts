@@ -1,6 +1,7 @@
 // server/src/controllers/studentController.ts
 import type { Request, Response } from 'express';
-import { COURSES, USERS, GRADES, type Class, type Session, CourseStatus } from '../models/mockData';
+//import { COURSES, USERS, GRADES, type Class, type Session, CourseStatus } from '../models/mockData';
+import { COURSES, USERS, GRADES, MATERIALS, type Class, CourseStatus } from '../models/mockData';
 
 // 1. Tìm kiếm Môn học (Trả về môn học + danh sách lớp của nó)
 export const searchClasses = (req: Request, res: Response) => {
@@ -69,7 +70,7 @@ export const registerClass = (req: Request, res: Response) => {
 
   const student = USERS.find(u => u.id === studentId);
   
-  // Tìm Class và Course chứa nó trong Mảng lồng nhau
+  // Tìm Class và Course
   let targetClass = null;
   let parentCourse = null;
 
@@ -87,25 +88,34 @@ export const registerClass = (req: Request, res: Response) => {
     return;
   }
 
-  // VALIDATION: Sinh viên đã học môn này chưa? (Không được học 2 lớp cùng 1 môn)
-  // Lấy tất cả classId thuộc môn học này
-  const siblingClassIds = parentCourse.classes.map(c => c.classId);
-  
-  // Kiểm tra xem sinh viên đã đăng ký bất kỳ lớp nào thuộc môn này chưa
-  const hasRegisteredSubject = student.registeredClassIds.some(id => siblingClassIds.includes(id));
+  // LOGIC MỚI: Kiểm tra trong bảng điểm (GRADES) xem môn này đang ở trạng thái nào
+  const currentGradeRecord = GRADES.find(g => 
+    g.studentId === studentId && 
+    g.courseId === parentCourse.courseId &&
+    g.status === CourseStatus.STUDYING // Chỉ chặn nếu đang học
+  );
 
-  if (hasRegisteredSubject) {
-    res.status(400).json({ success: false, message: `You are already enrolled in ${parentCourse.courseName}` });
+  if (currentGradeRecord) {
+    // Nếu tìm thấy record đang STUDYING -> Chặn
+    res.status(400).json({ success: false, message: `You are currently studying ${parentCourse.courseName}. You cannot register again until you finish or withdraw.` });
     return;
   }
 
-  // SUCCESS: Update 2 chiều
-  student.registeredClassIds.push(classId); // Update user
-  targetClass.enrolledStudentIds.push(studentId); // Update class sĩ số
+  // Logic cũ: Kiểm tra trùng lớp trong danh sách đăng ký (đề phòng spam request)
+  const siblingClassIds = parentCourse.classes.map(c => c.classId);
+  const isEnrolledInSession = student.registeredClassIds.some(id => siblingClassIds.includes(id));
+  if (isEnrolledInSession) {
+    res.status(400).json({ success: false, message: "You have already registered for a class in this course." });
+    return;
+  }
+
+  // Success
+  student.registeredClassIds.push(classId);
+  targetClass.enrolledStudentIds.push(studentId);
 
   res.status(200).json({ 
     success: true, 
-    message: `Successfully enrolled in ${targetClass.classId} - ${targetClass.tutorName}`,
+    message: `Successfully enrolled in ${targetClass.classId}`,
     updatedRegisteredList: student.registeredClassIds
   });
 };
@@ -207,7 +217,7 @@ export const getUpcomingSessions = (req: Request, res: Response) => {
   res.status(200).json({ success: true, data: sessionsToShow });
 };
 
-// 5. API Lấy danh sách điểm (Performance List)
+// API Lấy danh sách điểm (Performance List)
 export const getCoursePerformance = (req: Request, res: Response) => {
   const studentId = req.query.studentId as string;
   const query = (req.query.q as string || "").toLowerCase();
@@ -263,3 +273,35 @@ export const getPerformanceDetail = (req: Request, res: Response) => {
     }
   });
 };
+
+// API MỚI: Lấy danh sách Materials
+export const getMaterials = (req: Request, res: Response) => {
+  const { q, major } = req.query; // Search query và Major filter
+  
+  let result = MATERIALS;
+
+  // Filter theo tên
+  if (q) {
+    const lowerQ = (q as string).toLowerCase();
+    result = result.filter(m => m.title.toLowerCase().includes(lowerQ));
+  }
+
+  // Filter theo ngành
+  if (major && major !== "All Majors") {
+    result = result.filter(m => m.majors.includes(major as any));
+  }
+
+  res.status(200).json({ success: true, data: result });
+};
+
+// API MỚI: Lấy chi tiết Material
+export const getMaterialDetail = (req: Request, res: Response) => {
+  const { id } = req.query;
+  const material = MATERIALS.find(m => m.id === id);
+  
+  if (!material) {
+    res.status(404).json({ success: false, message: "Material not found" });
+    return;
+  }
+  res.status(200).json({ success: true, data: material });
+}

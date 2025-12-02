@@ -80,7 +80,7 @@ const StudentSchedule = () => {
         {/* --- CALENDAR --- */}
         <div className="calendar-card">
           <div className="calendar-header">
-            <h2>{currentDate.toLocaleString('en-US', { month: 'long', year: 'numeric' })}</h2>
+            <h2>{currentDate.toLocaleString('en-US', { month: 'long', year: 'numeric' })}</h2>          
             <div style={{display: 'flex', gap: '10px'}}>
                 <button className="month-nav-btn" onClick={() => changeMonth(-1)}>
                   <svg width="10" height="16" viewBox="0 0 10 16" fill="none"><path d="M8.5 1L1.5 8L8.5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
