@@ -16,21 +16,25 @@ interface FeedbackCandidate {
   courseName: string;
   credits?: number;
   tutorName: string;
-  feedbackData: FeedbackData | null; // Dữ liệu feedback cũ (nếu có)
+  feedbackData: FeedbackData | null;
 }
 
-// --- CARD COMPONENT ---
+// --- CARD CHO TỪNG MÔN ---
 const FeedbackCardItem = ({ course, studentId, onUpdate }: { 
   course: FeedbackCandidate, 
   studentId: string, 
   onUpdate: () => void 
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  // Mặc định mở nếu chưa submit để user thấy luôn (giống hình), hoặc đóng tùy logic bạn muốn.
+  // Ở đây tôi để false để gọn, user click "Close" hoặc tiêu đề để toggle.
+  // Tuy nhiên, theo hình mẫu, nút bên phải là "Close", nghĩa là form ĐANG MỞ.
+  // -> Tôi sẽ để mặc định là true (mở) cho các môn chưa làm.
+  const [isExpanded, setIsExpanded] = useState(!course.feedbackData); 
+  
   const [ratings, setRatings] = useState({ overall: 0, teaching: 0, material: 0, difficulty: 0 });
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load dữ liệu cũ khi mở card (nếu có)
   useEffect(() => {
     if (course.feedbackData) {
       setRatings({
@@ -40,10 +44,11 @@ const FeedbackCardItem = ({ course, studentId, onUpdate }: {
         difficulty: course.feedbackData.difficultyLevel
       });
       setComment(course.feedbackData.comment);
+      setIsExpanded(false); // Nếu đã làm rồi thì thu gọn
     } else {
-      // Nếu chưa có, reset về 0
       setRatings({ overall: 0, teaching: 0, material: 0, difficulty: 0 });
       setComment('');
+      setIsExpanded(true); // Nếu chưa làm thì mở ra
     }
   }, [course.feedbackData]);
 
@@ -61,7 +66,6 @@ const FeedbackCardItem = ({ course, studentId, onUpdate }: {
     </div>
   );
 
-  // Xử lý Submit (Tạo mới hoặc Update)
   const handleSubmit = async () => {
     if (ratings.overall === 0) return;
     setIsSubmitting(true);
@@ -73,9 +77,8 @@ const FeedbackCardItem = ({ course, studentId, onUpdate }: {
         ratings,
         comment
       });
-      onUpdate(); // Refresh data từ server
-      // Không đóng form, giữ nguyên để user biết đã submit và có thể sửa
-      alert("Feedback saved successfully!"); 
+      onUpdate();
+      alert("Feedback submitted!");
     } catch (error: any) {
       alert("Error saving feedback");
     } finally {
@@ -83,33 +86,26 @@ const FeedbackCardItem = ({ course, studentId, onUpdate }: {
     }
   };
 
-  // Xử lý Cancel / Withdraw
   const handleCancel = async () => {
     if (course.feedbackData) {
-      // Nếu đã submit -> Hành động là XOÁ (Withdraw)
-      if (window.confirm("Are you sure you want to withdraw this feedback?")) {
+      if (window.confirm("Withdraw feedback?")) {
         try {
-          await axios.delete('http://localhost:5000/api/student/feedback', {
-            data: { studentId, courseId: course.courseId }
-          });
-          onUpdate(); // Refresh data -> Form sẽ reset về trạng thái chưa điền
-          setRatings({ overall: 0, teaching: 0, material: 0, difficulty: 0 });
-          setComment('');
-        } catch (e) { alert("Failed to withdraw feedback"); }
+          await axios.delete('http://localhost:5000/api/student/feedback', { data: { studentId, courseId: course.courseId } });
+          onUpdate();
+        } catch (e) { alert("Error"); }
       }
     } else {
-      // Nếu chưa submit -> Hành động là RESET form
       setRatings({ overall: 0, teaching: 0, material: 0, difficulty: 0 });
       setComment('');
     }
   };
 
   const isSubmitted = !!course.feedbackData;
+  const isReady = ratings.overall > 0;
 
   return (
-    <div className={`feedback-card-item ${isExpanded ? 'expanded' : ''}`}>
-      
-      {/* HEADER: Luôn hiển thị */}
+    <div className="feedback-card-item">
+      {/* HEADER */}
       <div className="card-header-content">
         <div className="course-info">
           <h3 className="fb-course-name">
@@ -117,122 +113,144 @@ const FeedbackCardItem = ({ course, studentId, onUpdate }: {
             {isSubmitted && <span className="tag-submitted">Submitted</span>}
           </h3>
           <div className="fb-course-meta">
-            <span className="fb-meta-tag">{course.courseId}</span>
-            <span className="fb-meta-tag">{course.credits} Credits</span>
-            <span>• {course.tutorName}</span>
+            <span>{course.courseId} • {course.credits || 3} credits</span>
           </div>
-          
-          {!isExpanded && !isSubmitted && (
+          {(
             <div className="fb-hint-text">Click "Provide Feedback" to share your thoughts.</div>
-          )}
-          {!isExpanded && isSubmitted && (
-            <div className="fb-hint-text" style={{color: '#166534'}}>You have reviewed this course. Click Edit to change.</div>
           )}
         </div>
 
-        {/* Nút Toggle: Thay đổi dựa trên trạng thái expanded */}
+        {/* Nút Toggle: Nếu đang mở -> Hiện 'Close'. Nếu đang đóng -> Hiện 'Review' hoặc 'Provide' */}
         <button 
-          className={`btn-toggle-form ${isExpanded ? 'btn-close' : (isSubmitted ? 'btn-edit' : 'btn-open')}`} 
+          className="btn-toggle-form btn-close" 
           onClick={toggleExpand}
         >
-          {isExpanded ? 'Close' : (isSubmitted ? 'Review / Edit' : 'Provide Feedback')}
+          {isExpanded ? 'Close' : (isSubmitted ? 'Review' : 'Provide Feedback')}
         </button>
       </div>
 
-      {/* FORM BODY */}
-      <div className="form-expandable-body">
-        
-        <div className="rating-row-full">
-          <label className="fb-label required">Overall Rating</label>
-          {renderStars(ratings.overall, 'overall')}
-        </div>
+      {/* FORM BODY (Chỉ hiện khi Expanded) */}
+      {isExpanded && (
+        <div className="form-expandable-body">
+          <div className="rating-section">
+            
+            {/* Hàng 1: Overall Rating */}
+            <div className="rating-row-main">
+              <label className="fb-label required">Overall Rating</label>
+              {renderStars(ratings.overall, 'overall')}
+            </div>
 
-        <div className="ratings-grid">
-          <div>
-            <label className="fb-label">Teaching Quality</label>
-            {renderStars(ratings.teaching, 'teaching')}
+            {/* Hàng 2: Grid 3 Cột */}
+            <div className="rating-grid-three-col">
+              <div>
+                <label className="fb-label">Teaching Quality</label>
+                {renderStars(ratings.teaching, 'teaching')}
+              </div>
+              <div>
+                <label className="fb-label">Material Quality</label>
+                {renderStars(ratings.material, 'material')}
+              </div>
+              <div>
+                <label className="fb-label">Difficulty Level</label>
+                {renderStars(ratings.difficulty, 'difficulty')}
+                {/* Dòng chữ helper 1=Easy... đã quay lại */}
+                <span className="difficulty-helper">1 = Easy, 5 = Hard</span>
+              </div>
+            </div>
           </div>
-          <div>
-            <label className="fb-label">Material Quality</label>
-            {renderStars(ratings.material, 'material')}
-          </div>
-          <div>
-            <label className="fb-label">Difficulty Level</label>
-            {renderStars(ratings.difficulty, 'difficulty')}
-          </div>
-        </div>
 
-        <div style={{marginBottom:'24px'}}>
-          <label className="fb-label">Additional Comments</label>
+          <label className="fb-label" style={{marginTop: '24px'}}>Additional Comments</label>
           <textarea 
             className="fb-textarea"
-            placeholder="Share your thoughts..."
+            placeholder="Share your thoughts, suggestions, or experiences with this course..."
             value={comment}
             onChange={(e) => setComment(e.target.value)}
           />
-        </div>
+          <div className="privacy-hint">Your feedback is anonymous and will help improve the course</div>
 
-        <div className="form-actions-footer">
-          {/* Nút Cancel: Chức năng thay đổi tùy context */}
-          <button className="btn-cancel-form" onClick={handleCancel}>
-            {isSubmitted ? 'Withdraw Feedback' : 'Reset Form'}
-          </button>
-          
-          <button 
-            className="btn-submit" 
-            onClick={handleSubmit} 
-            disabled={ratings.overall === 0 || isSubmitting}
-          >
-            {isSubmitting ? 'Saving...' : (isSubmitted ? 'Update Feedback' : 'Submit Feedback')}
-          </button>
+          <div className="form-actions-footer">
+            <button className="btn-cancel-form" onClick={handleCancel}>
+              {isSubmitted ? 'Withdraw Feedback' : 'Cancel'}
+            </button>
+            <button 
+              className={`btn-submit ${isReady ? 'ready' : ''}`} 
+              onClick={handleSubmit}
+              disabled={!isReady || isSubmitting}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+              {isSubmitting ? 'Sending...' : (isSubmitted ? 'Update Feedback' : 'Submit Feedback')}
+            </button>
+          </div>
         </div>
-
-      </div>
+      )}
     </div>
   );
 };
 
+// --- MAIN PAGE ---
 const StudentFeedback = () => {
   const [candidates, setCandidates] = useState<FeedbackCandidate[]>([]);
+  const [historyCount, setHistoryCount] = useState(0);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const fetchData = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/student/feedback-candidates?studentId=${user.id}`);
-      if (res.data.success) {
-        setCandidates(res.data.data);
-      }
+      const resC = await axios.get(`http://localhost:5000/api/student/feedback-candidates?studentId=${user.id}`);
+      if (resC.data.success) setCandidates(resC.data.data);
+      // Tính lại history từ danh sách candidates (những môn có feedbackData)
+      const submittedCount = resC.data.data.filter((c: any) => c.feedbackData).length;
+      setHistoryCount(submittedCount);
     } catch (err) { console.error(err); }
   };
 
   useEffect(() => { fetchData(); }, []);
 
-  // Tính toán số lượng cần feedback
-  const pendingCount = candidates.filter(c => !c.feedbackData).length;
+  // Tổng số môn = candidates.length (vì API trả về cả môn đã làm và chưa làm)
+  const totalCourses = candidates.length;
+  const pendingCount = totalCourses - historyCount;
 
   return (
     <StudentLayout title="">
       <div className="feedback-page-container">
+        
+        {/* Title Ngoài */}
         <h1 className="fb-page-title">Feedback</h1>
-        <p className="fb-page-desc">
-          Share your honest feedback. Forms are available for a limited time after course completion.
-        </p>
 
-        {candidates.length > 0 ? (
-          candidates.map(course => (
-            <FeedbackCardItem 
-              key={course.courseId} 
-              course={course} 
-              studentId={user.id}
-              onUpdate={fetchData}
-            />
-          ))
-        ) : (
-          <div style={{textAlign:'center', padding:'60px', background:'white', borderRadius:'16px', border:'1px dashed #e5e7eb'}}>
-            <h3>No courses available for feedback.</h3>
-            <p style={{color:'#6b7280'}}>Check back after you complete a course.</p>
+        {/* Khối Trắng Lớn */}
+        <div className="big-white-card">
+          
+          <div className="card-internal-header">
+            <h2 className="fb-card-title">Course Feedback</h2>
+            <p className="fb-card-desc">Share your experience and help improve the learning experience for everyone.</p>
           </div>
-        )}
+
+          {/* Danh sách Form */}
+          {candidates.length > 0 ? (
+            candidates.map(course => (
+              <FeedbackCardItem 
+                key={course.courseId} 
+                course={course} 
+                studentId={user.id}
+                onUpdate={fetchData}
+              />
+            ))
+          ) : (
+            <div style={{textAlign:'center', padding:'40px', color:'#6b7280'}}>
+              No courses available for feedback at this time.
+            </div>
+          )}
+
+          {/* CARD XANH (Footer Summary) - Nằm bên trong khối trắng */}
+          <div className="summary-blue-card">
+            <div className="summary-text-main">
+              {historyCount} of {totalCourses} courses reviewed
+            </div>
+            <div className="summary-text-sub">
+              {pendingCount} course(s) pending feedback
+            </div>
+          </div>
+
+        </div>
       </div>
     </StudentLayout>
   );

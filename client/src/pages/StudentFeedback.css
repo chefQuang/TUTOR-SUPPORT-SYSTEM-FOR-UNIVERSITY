@@ -1,258 +1,185 @@
 /* client/src/pages/StudentFeedback.css */
 
 .feedback-page-container {
-  max-width: 900px;
+  max-width: 950px;
   margin: 0 auto;
-  padding-bottom: 120px;
-  font-family: 'Inter', sans-serif;
+  padding-bottom: 80px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* --- PAGE HEADER --- */
+/* --- 1. PAGE TITLE (Nằm ngoài card trắng) --- */
 .fb-page-title {
   font-size: 1.8rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #111827;
-  margin-bottom: 10px;
-}
-
-.fb-page-desc {
-  color: #6b7280;
-  font-size: 1rem;
-  margin-bottom: 40px;
-}
-
-/* --- FEEDBACK CARD (Riêng biệt từng môn) --- */
-.feedback-card-item {
-  background: white;
-  border-radius: 16px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
   margin-bottom: 24px;
-  overflow: hidden; /* Quan trọng cho animation */
-  transition: box-shadow 0.3s, transform 0.3s;
 }
 
-.feedback-card-item:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-/* --- HEADER CỦA CARD (Luôn hiển thị) --- */
-.card-header-content {
-  padding: 24px 32px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: white;
-  position: relative;
-  z-index: 2;
-}
-
-.course-info {
-  flex: 1;
-}
-
-.fb-course-name {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin: 0 0 6px 0;
-}
-
-.fb-course-meta {
-  font-size: 0.9rem;
-  color: #6b7280;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-.feedback-page-container {
-  max-width: 900px;
-  margin: 0 auto;
-  padding-bottom: 120px;
-  font-family: 'Inter', sans-serif;
-}
-
-.fb-page-title {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #111827;
-  margin-bottom: 10px;
-}
-
-.fb-page-desc {
-  color: #6b7280;
-  font-size: 1rem;
-  margin-bottom: 40px;
-}
-
-.feedback-card-item {
+/* --- 2. THE BIG WHITE CARD CONTAINER --- */
+.big-white-card {
   background: white;
   border-radius: 16px;
+  padding: 40px; /* Padding lớn bao quanh */
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
   border: 1px solid #e5e7eb;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+}
+
+/* Header bên trong Card trắng */
+.card-internal-header {
+  margin-bottom: 32px;
+}
+
+.fb-card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 8px 0;
+}
+
+.fb-card-desc {
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+/* --- 3. COURSE FEEDBACK ITEM (Từng môn học) --- */
+.feedback-card-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
   margin-bottom: 24px;
   overflow: hidden;
   transition: all 0.3s ease;
 }
 
-/* Card Header */
 .card-header-content {
-  padding: 24px 32px;
+  padding: 20px 24px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   background: white;
-  position: relative;
-  z-index: 2;
 }
 
-.course-info { flex: 1; }
-
 .fb-course-name {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #1f2937;
-  margin: 0 0 6px 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  margin: 0 0 4px 0;
+  display: flex; align-items: center; gap: 8px;
 }
 
 .tag-submitted {
-  font-size: 0.75rem;
-  background: #dcfce7;
-  color: #166534;
-  padding: 2px 8px;
-  border-radius: 4px;
-  text-transform: uppercase;
+  font-size: 0.7rem; background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;
 }
 
 .fb-course-meta {
-  font-size: 0.9rem;
-  color: #6b7280;
-  display: flex; gap: 10px; align-items: center;
-}
-
-.fb-meta-tag {
-  background: #f3f4f6;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-weight: 600;
-  font-size: 0.8rem;
-  color: #4b5563;
+  font-size: 0.85rem; color: #6b7280;
 }
 
 .fb-hint-text {
-  font-size: 0.9rem; color: #6b7280; margin-top: 8px; font-style: italic;
+  font-size: 0.85rem; color: #9ca3af; margin-top: 6px; 
 }
 
-/* NÚT TOGGLE (Provide Feedback / Close) */
+/* Nút Toggle (Close / Provide) */
 .btn-toggle-form {
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: 6px 16px;
+  border-radius: 6px;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  cursor: pointer;
   border: none;
-  cursor: pointer;
   transition: all 0.2s;
-  white-space: nowrap;
 }
 
-/* Trạng thái 1: Provide Feedback (Mở) - Màu Xanh */
-.btn-toggle-form.btn-open {
-  background-color: #2563eb;
-  color: white;
-  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
-}
-.btn-toggle-form.btn-open:hover { background-color: #1d4ed8; }
-
-/* Trạng thái 2: Edit Feedback (Đã submit) - Màu Cam nhẹ/Khác biệt */
-.btn-toggle-form.btn-edit {
-  background-color: #fff7ed;
-  color: #c2410c;
-  border: 1px solid #ffedd5;
-}
-.btn-toggle-form.btn-edit:hover { background-color: #ffedd5; }
-
-/* Trạng thái 3: Close (Đóng) - Màu Xám */
 .btn-toggle-form.btn-close {
-  background-color: #f3f4f6;
-  color: #374151;
-  border: 1px solid #e5e7eb;
+  background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb;
 }
-.btn-toggle-form.btn-close:hover { background-color: #e5e7eb; }
+.btn-toggle-form.btn-close:hover { background: #e5e7eb; }
 
-
-/* --- FORM BODY --- */
+/* --- 4. FORM BODY --- */
 .form-expandable-body {
-  background-color: #fafafa;
+  padding: 0 24px 24px 24px; /* Padding nội dung form */
   border-top: 1px solid #f3f4f6;
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: 10px;
+  animation: slideDown 0.3s ease-out;
 }
 
-.feedback-card-item.expanded .form-expandable-body {
-  max-height: 1200px;
-  opacity: 1;
-  padding: 32px;
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* --- RATINGS LAYOUT --- */
+.rating-section {
+  padding-top: 20px;
+  display: flex; flex-direction: column; gap: 24px;
 }
 
-/* Form Styles (Ratings, Comment) - Giữ nguyên như cũ */
-.ratings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 24px; }
-.rating-row-full { margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px dashed #e5e7eb; }
-.fb-label { display: block; font-weight: 600; color: #374151; margin-bottom: 8px; }
+/* Hàng 1: Overall Rating */
+.rating-row-main {
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+/* Hàng 2: Grid 3 cột cho Teaching, Material, Difficulty */
+.rating-grid-three-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* Chia 3 cột đều nhau */
+  gap: 20px;
+}
+
+.fb-label {
+  font-size: 0.9rem; font-weight: 600; color: #374151; margin-bottom: 6px; display: block;
+}
 .fb-label.required::after { content: " *"; color: #ef4444; }
-.star-rating { display: flex; gap: 5px; }
-.star-icon { font-size: 1.8rem; color: #e5e7eb; cursor: pointer; transition: color 0.2s; line-height: 1; }
+
+.difficulty-helper {
+  font-size: 0.75rem; color: #9ca3af; margin-top: 4px; display: block;
+}
+
+/* Stars */
+.star-rating { display: flex; gap: 4px; }
+.star-icon { font-size: 1.6rem; color: #e5e7eb; cursor: pointer; transition: color 0.15s; line-height: 1; }
 .star-icon:hover, .star-icon.active { color: #fbbf24; }
-.fb-textarea { width: 100%; padding: 16px; border: 1px solid #d1d5db; border-radius: 8px; font-family: inherit; font-size: 0.95rem; min-height: 120px; resize: vertical; background: white; }
-.fb-textarea:focus { outline: 2px solid #2563eb; border-color: transparent; }
 
-/* FOOTER ACTIONS */
+/* Comment Box */
+.fb-textarea {
+  width: 100%; padding: 12px 16px;
+  background-color: #f9fafb; border: 1px solid #e5e7eb;
+  border-radius: 8px; font-family: inherit; font-size: 0.9rem;
+  min-height: 100px; resize: vertical; margin-top: 24px;
+  box-sizing: border-box;
+}
+.fb-textarea:focus { outline: 2px solid #2563eb; border-color: transparent; background: white; }
+
+.privacy-hint { font-size: 0.8rem; color: #9ca3af; margin-top: 6px; }
+
+/* Actions Footer */
 .form-actions-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 24px;
+  display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;
 }
 
-/* Nút Cancel (Hủy form) - Màu đỏ nhẹ nếu đã submit, xám nếu chưa */
 .btn-cancel-form {
-  background: white;
-  border: 1px solid #fee2e2;
-  color: #ef4444;
-  font-weight: 600;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
+  background: white; border: 1px solid #d1d5db; color: #374151;
+  font-weight: 600; padding: 10px 20px; border-radius: 8px; cursor: pointer;
 }
-.btn-cancel-form:hover { background: #fef2f2; }
-
-/* Nút Reset (Xóa trắng) */
-.btn-reset-form {
-  background: white;
-  border: 1px solid #d1d5db;
-  color: #4b5563;
-  font-weight: 600;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-.btn-reset-form:hover { background: #f3f4f6; }
+.btn-cancel-form:hover { background: #f9fafb; color: #111827; }
 
 .btn-submit {
-  background-color: #2563eb;
-  color: white;
-  padding: 10px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+  background-color: #4b5563; color: white;
+  padding: 10px 24px; border-radius: 8px; font-weight: 600;
+  border: none; cursor: not-allowed; display: flex; align-items: center; gap: 8px;
 }
-.btn-submit:hover { background-color: #1d4ed8; }
-.btn-submit:disabled { background-color: #9ca3af; cursor: not-allowed; box-shadow: none; }
+.btn-submit.ready { background-color: #2563eb; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3); }
+.btn-submit.ready:hover { background-color: #1d4ed8; }
+
+
+/* --- 5. SUMMARY BLUE CARD (Card Xanh) --- */
+.summary-blue-card {
+  background-color: #f0f9ff; /* Xanh rất nhạt */
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-top: 10px; /* Cách danh sách môn học một chút */
+  border: 1px solid #e0f2fe;
+}
+
+.summary-text-main {
+  font-size: 0.9rem; font-weight: 700; color: #0c4a6e; margin-bottom: 4px;
+}
+.summary-text-sub {
+  font-size: 0.85rem; color: #64748b;
+}
