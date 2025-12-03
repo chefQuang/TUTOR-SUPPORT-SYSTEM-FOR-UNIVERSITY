@@ -42,9 +42,9 @@ const StudentPerformance = () => {
   };
 
   // Load chi tiết khóa học khi click
-  const handleSelectCourse = async (courseId: string) => {
+  const handleSelectCourse = async (classId: string, courseId: string) => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/student/performance-detail?studentId=${user.id}&courseId=${courseId}`);
+      const res = await axios.get(`http://localhost:5000/api/student/performance-detail?studentId=${user.id}&classId=${classId}&courseId=${courseId}`);
       if(res.data.success) {
         setSelectedCourse(res.data.data);
         setView('detail');
@@ -107,7 +107,7 @@ const StudentPerformance = () => {
 
       <div className="perf-grid">
         {courses.map(course => (
-          <div key={course.classId} className="perf-card" onClick={() => handleSelectCourse(course.courseId)}>
+          <div key={course.classId} className="perf-card" onClick={() => handleSelectCourse(course.classId, course.courseId)}>
             <span className={`status-tag ${course.status.toLowerCase()}`}>{course.status}</span>
             <h3 className="perf-title">{course.courseName}</h3>
             <div className="perf-code">{course.courseId}</div>

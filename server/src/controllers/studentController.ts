@@ -329,10 +329,13 @@ export const getCoursePerformance = (req: Request, res: Response) => {
 // API Lấy chi tiết điểm 1 môn (Performance Detail)
 // Cập nhật API Detail để dùng classId tìm kiếm cho chuẩn
 export const getPerformanceDetail = (req: Request, res: Response) => {
-  const { studentId, courseId } = req.query; // Dùng classId làm khóa chính
+  const { studentId, classId, courseId } = req.query; // Dùng classId làm khóa chính
+  console.log(classId);
   
-  const gradeRecord = GRADES.find(g => g.studentId === studentId && g.courseId === courseId);
-  
+  const gradeRecord = GRADES.find(g => g.studentId === studentId && g.classId === classId && g.courseId === courseId);
+
+  console.log("studentId:", studentId, "classId:", classId);
+
   if (!gradeRecord) {
     res.status(404).json({ success: false, message: "Record not found" });
     return;
