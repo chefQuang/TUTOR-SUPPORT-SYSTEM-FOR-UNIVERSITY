@@ -181,6 +181,7 @@ export const GRADES: StudentCoursePerformance[] = [
       { name: "Final Exam", weight: 50, score: 8.5 }
     ]
   },
+  
   {
     studentId: "ST001",
     courseId: "CO2003", // Data Structures
