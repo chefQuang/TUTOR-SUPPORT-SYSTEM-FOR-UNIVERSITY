@@ -20,6 +20,7 @@ const StudentMaterials = () => {
   const [selectedMat, setSelectedMat] = useState<Material | null>(null);
   const [query, setQuery] = useState('');
   const [majorFilter, setMajorFilter] = useState('All Majors');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const majors = ["All Majors", "Computer Science", "Computer Engineering", "Electrical Engineering", "Business Administration"];
 
@@ -56,8 +57,8 @@ const StudentMaterials = () => {
     // window.open(selectedMat?.downloadUrl);
   };
 
-  // --- VIEW: GRID LIST ---
-  const renderGrid = () => (
+  // --- VIEW: GRID LIST (UPDATE)---
+const renderGrid = () => (
     <>
       <div className="mat-header">
         <div className="mat-search-container">
@@ -69,15 +70,45 @@ const StudentMaterials = () => {
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
-        <div className="mat-filter-container">
-          <select 
-            className="mat-select" 
-            value={majorFilter} 
-            onChange={(e) => setMajorFilter(e.target.value)}
+
+        {/* --- CUSTOM DROPDOWN BẮT ĐẦU TỪ ĐÂY --- */}
+        <div className={`mat-filter-container ${isDropdownOpen ? 'dropdown-open' : ''}`}>
+          {/* Nút Trigger */}
+          <div 
+            className="custom-dropdown-trigger" 
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
-            {majors.map(m => <option key={m} value={m}>{m}</option>)}
-          </select>
+            <span>{majorFilter}</span>
+            <span className="dropdown-arrow">▼</span>
+          </div>
+
+          {/* Menu thả xuống */}
+          <div className="custom-dropdown-menu">
+            {majors.map(m => (
+              <div 
+                key={m} 
+                className={`dropdown-item ${majorFilter === m ? 'selected' : ''}`}
+                onClick={() => {
+                  setMajorFilter(m);
+                  setIsDropdownOpen(false); // Chọn xong tự đóng
+                }}
+              >
+                {m}
+                {/* Hiện dấu tích nếu đang chọn */}
+                {majorFilter === m && <span className="check-icon">✓</span>}
+              </div>
+            ))}
+          </div>
+          
+          {/* Lớp phủ tàng hình để click ra ngoài thì đóng menu (Optional nhưng tốt cho UX) */}
+          {isDropdownOpen && (
+            <div 
+              style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 90}}
+              onClick={() => setIsDropdownOpen(false)}
+            />
+          )}
         </div>
+        {/* --- KẾT THÚC CUSTOM DROPDOWN --- */}
       </div>
 
       <div className="mat-grid">

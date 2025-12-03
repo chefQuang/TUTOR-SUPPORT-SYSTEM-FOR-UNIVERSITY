@@ -17,7 +17,7 @@ const StudentLayout: React.FC<LayoutProps> = ({ children, title }) => {
     { label: 'Schedule', path: '/student/schedule', icon: '📅' },
     { label: 'Register Course', path: '/student/register', icon: '🎓' }, // Nút quan trọng
     { label: 'Course Performance', path: '/student/performance', icon: '📊' },
-    { label: 'Groups', path: '/student/groups', icon: '👥' },
+    { label: 'My Courses', path: '/student/courses', icon: '👥' },
     { label: 'Materials', path: '/student/materials', icon: '📚' },
     { label: 'Profile', path: '/student/profile', icon: '👤' },
   ];

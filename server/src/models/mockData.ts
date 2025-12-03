@@ -44,6 +44,13 @@ export interface Class {
   scheduleOverview: string;     // Chuỗi hiển thị nhanh (VD: "Mon 7-10")
 }
 
+// Loại nội dung học tập
+export enum ContentType {
+  FILE = "file", // Tài liệu
+  ASSIGNMENT = "assignment", // Bài tập nộp file
+  QUIZ = "quiz" // Bài kiểm tra trắc nghiệm
+}
+
 export enum CourseStatus {
   STUDYING = "Studying",
   COMPLETED = "Completed",
@@ -67,6 +74,7 @@ export interface GradeComponent {
 
 export interface StudentCoursePerformance {
   studentId: string;
+  classId: string;
   courseId: string;
   status: CourseStatus;
   components: GradeComponent[];
@@ -85,6 +93,51 @@ export interface Material {
   downloadUrl: string; // URL file
   previewPages: number; // Số trang cho phép xem trước
 }
+
+// Cấu trúc câu hỏi Quiz
+export interface QuizQuestion {
+  id: string;
+  text: string;
+  options: string[];
+  correctOptionIndex: number;
+}
+
+// Cấu trúc một Section (Chương/Tuần)
+export interface CourseSection {
+  id: string;
+  title: string;
+  items: CourseItem[];
+}
+
+// Cấu trúc một mục (Item) trong khóa học
+export interface CourseItem {
+  id: string;
+  type: ContentType;
+  title: string;
+  description?: string;
+  
+  // Dành cho Assignment
+  dueDate?: string; // Deadline
+  fileUrl?: string; // File đề bài (nếu có)
+  
+  // Dành cho Quiz
+  duration?: number; // Phút
+  attempts?: number; // Số lần làm bài
+  questions?: QuizQuestion[];
+}
+
+// Lưu trạng thái nộp bài của sinh viên
+export interface Submission {
+  studentId: string;
+  itemId: string; // Assignment ID hoặc Quiz ID
+  submittedAt: string;
+  status: "Pending Grading" | "Graded" | "Late";
+  fileUrl?: string; // Cho Assignment
+  score?: number;   // Cho Quiz hoặc Assignment đã chấm
+  attemptCount?: number;
+}
+
+export const SUBMISSIONS: Submission[] = []; // Khởi tạo rỗng
 
 
 // Mock Data Users (Cập nhật thêm mảng rỗng cho student)
@@ -167,6 +220,22 @@ export const COURSES: Course[] = [
         sessions: []
       }
     ]
+  },
+  {
+    courseId: "CO1023",
+    courseName: "Introduction to Computing",
+    credits: 4,
+    classes: [
+      {
+        classId: "CL_IC_01",
+        tutorName: "Dr. Hoa Thanh Que",
+        tutorId: "TT004",
+        capacity: 40,
+        enrolledStudentIds: [],
+        scheduleOverview: "Wed 12:00 - 15:00",
+        sessions: []
+      }
+    ]
   }
 ];
 
@@ -174,6 +243,7 @@ export const GRADES: StudentCoursePerformance[] = [
   {
     studentId: "ST001",
     courseId: "CO3001", // Software Engineering
+    classId: "CL_SE_01",
     status: CourseStatus.COMPLETED,
     components: [
       { name: "Assignment", weight: 20, score: 9.0 },
@@ -184,6 +254,7 @@ export const GRADES: StudentCoursePerformance[] = [
   {
     studentId: "ST001",
     courseId: "CO2003", // Data Structures
+    classId: "CL_DSA_01",
     status: CourseStatus.STUDYING,
     components: [
       { name: "Lab 1", weight: 10, score: 9.5 },
@@ -195,6 +266,7 @@ export const GRADES: StudentCoursePerformance[] = [
   {
     studentId: "ST001",
     courseId: "CO1023", // Intro to Computing
+    classId: "CL_IC_01",
     status: CourseStatus.WITHDRAWN,
     components: []
   }
@@ -235,3 +307,56 @@ export const MATERIALS: Material[] = [
     previewPages: 3
   }
 ];
+
+// Dữ liệu nội dung khóa học (Map theo CourseId)
+export const COURSE_CONTENTS: Record<string, CourseSection[]> = {
+  "CO3001": [ // Software Engineering
+    {
+      id: "SEC01",
+      title: "Week 1: Introduction & Process Models",
+      items: [
+        { id: "FILE01", type: ContentType.FILE, title: "Lecture Slide Chapter 1", fileUrl: "#" },
+        { 
+          id: "ASS01", 
+          type: ContentType.ASSIGNMENT, 
+          title: "Assignment 1: Case Study Analysis", 
+          description: "Analyze the given case study and propose a suitable process model.",
+          dueDate: "2025-10-20T23:59:00" 
+        }
+      ]
+    },
+    {
+      id: "SEC02",
+      title: "Week 3: Requirements Engineering",
+      items: [
+        { 
+          id: "QUIZ01", 
+          type: ContentType.QUIZ, 
+          title: "Quiz 1: Requirement Types", 
+          description: "Test your understanding of Functional vs Non-functional requirements.",
+          duration: 15, // 15 phút
+          attempts: 2,
+          questions: [
+            { id: "Q1", text: "Which is a non-functional requirement?", options: ["System must send email", "Response time < 2s", "User can login", "Admin can delete user"], correctOptionIndex: 1 },
+            { id: "Q2", text: "What does SRS stand for?", options: ["System Requirement Specification", "Software Requirement Specification", "System Role Specification", "Software Role Specification"], correctOptionIndex: 1 }
+          ]
+        }
+      ]
+    }
+  ],
+  "CO2003": [ // Data Structures
+    {
+      id: "SEC_DSA_01",
+      title: "Lab 2: Linked List",
+      items: [
+        {
+          id: "ASS_DSA_01",
+          type: ContentType.ASSIGNMENT,
+          title: "Lab 2 Submission",
+          description: "Submit your source code for Linked List implementation.",
+          dueDate: "2025-11-15T23:59:00"
+        }
+      ]
+    }
+  ]
+};

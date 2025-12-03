@@ -7,6 +7,9 @@ import { TutorDashboard, AdminDashboard } from './pages/Dashboard';
 import StudentSchedule from './pages/StudentSchedule';
 import StudentPerformance from './pages/StudentPerformance';
 import StudentMaterials from './pages/StudentMaterials';
+import MyCourses from './pages/MyCourses';
+import AssignmentDetail from './pages/AssignmentDetail';
+import QuizDetail from './pages/QuizDetail';
 import './App.css'; 
 
 function App() {
@@ -35,6 +38,15 @@ function App() {
         } />
         <Route path="/student/materials" element={
           <PrivateRoute><StudentMaterials /></PrivateRoute>
+        } />
+        <Route path="/student/courses" element={
+          <PrivateRoute><MyCourses /></PrivateRoute>
+        } />
+        <Route path="/student/courses/:courseId/assignment/:itemId" element={
+          <PrivateRoute><AssignmentDetail /></PrivateRoute>
+        } />
+        <Route path="/student/courses/:courseId/quiz/:itemId" element={
+          <PrivateRoute><QuizDetail /></PrivateRoute>
         } />
         
         <Route path="/tutor/home" element={

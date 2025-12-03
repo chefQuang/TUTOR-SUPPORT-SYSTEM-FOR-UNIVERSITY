@@ -1,0 +1,167 @@
+/* client/src/pages/MyCourses.css */
+
+/* --- COURSE LIST (Reuse style but modified) --- */
+.course-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+/* --- COURSE CONTENT DETAIL --- */
+.course-detail-container {
+  display: flex; gap: 30px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Sidebar Mục lục (Bên trái) */
+.course-sidebar {
+  width: 300px;
+  background: white; border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  padding: 20px;
+  height: fit-content;
+  position: sticky; top: 20px;
+}
+
+.section-title {
+  font-weight: 700; color: #334155; margin-bottom: 12px;
+  font-size: 1rem; text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+.item-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px; margin-bottom: 8px;
+  border-radius: 8px; cursor: pointer;
+  transition: all 0.2s; color: #64748b;
+  border: 1px solid transparent;
+}
+
+.item-row:hover { background: #f1f5f9; color: #0033cc; }
+.item-row.active { background: #eff6ff; color: #0033cc; border-color: #dbeafe; font-weight: 600; }
+
+/* Icon loại nội dung */
+.item-icon { font-size: 1.2rem; }
+
+/* Khu vực nội dung chính (Bên phải) */
+.content-area {
+  flex: 1;
+  background: white; border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+  min-height: 500px;
+}
+
+.content-header {
+  border-bottom: 2px solid #f1f5f9; padding-bottom: 20px; margin-bottom: 30px;
+}
+.content-title-main { font-size: 2rem; font-weight: 800; color: #1e293b; margin: 0 0 10px 0; }
+.content-desc { color: #64748b; font-size: 1.1rem; line-height: 1.6; }
+
+/* --- ASSIGNMENT SUBMISSION UI --- */
+.submission-box {
+  background: #f8fafc; border: 2px dashed #cbd5e1;
+  border-radius: 16px; padding: 40px;
+  text-align: center; margin-top: 30px;
+  transition: all 0.3s;
+}
+.submission-box.submitted { border-style: solid; border-color: #22c55e; background: #f0fdf4; }
+
+.sub-status-label {
+  display: inline-block; padding: 6px 16px; border-radius: 20px;
+  font-weight: 700; text-transform: uppercase; font-size: 0.8rem;
+  margin-bottom: 20px;
+}
+.sub-status-label.no { background: #f1f5f9; color: #64748b; }
+.sub-status-label.done { background: #22c55e; color: white; box-shadow: 0 4px 10px rgba(34, 197, 94, 0.3); }
+
+.file-input-wrapper { margin: 20px 0; }
+.btn-submit {
+  background: #0033cc; color: white; padding: 12px 32px; border-radius: 50px;
+  font-weight: 700; border: none; cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 51, 204, 0.3);
+  transition: transform 0.2s;
+}
+.btn-submit:hover { transform: translateY(-2px); }
+
+/* --- QUIZ UI --- */
+.quiz-intro { text-align: center; padding: 40px; }
+.quiz-meta { display: flex; justify-content: center; gap: 40px; margin: 30px 0; color: #64748b; font-size: 1.1rem; }
+.quiz-meta div { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.quiz-meta span { font-weight: 800; color: #1e293b; font-size: 1.5rem; }
+
+.quiz-interface { position: relative; }
+.timer-badge {
+  position: absolute; top: -60px; right: 0;
+  background: #1e293b; color: white; padding: 8px 20px;
+  border-radius: 30px; font-weight: 700; font-family: monospace; font-size: 1.2rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.question-card {
+  background: #f8fafc; border-radius: 12px; padding: 24px;
+  margin-bottom: 24px; border: 1px solid #e2e8f0;
+}
+.q-text { font-size: 1.2rem; font-weight: 700; color: #334155; margin-bottom: 20px; }
+.q-option {
+  display: block; padding: 12px 16px; margin-bottom: 10px;
+  background: white; border: 1px solid #cbd5e1; border-radius: 8px;
+  cursor: pointer; transition: all 0.2s;
+}
+.q-option:hover { border-color: #0033cc; background: #eff6ff; }
+.q-option.selected { border-color: #0033cc; background: #dbeafe; color: #0033cc; font-weight: 600; }
+
+.btn-finish-quiz {
+  float: right; background: #ef4444; color: white; 
+  padding: 12px 30px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+.btn-finish-quiz:hover { background: #dc2626; }
+
+/* ACCORDION STYLES */
+.accordion-container {
+  max-width: 800px;
+}
+
+.accordion-item {
+  margin-bottom: 16px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.accordion-header {
+  padding: 16px 24px;
+  background: #f8fafc;
+  cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center;
+  font-weight: 700; color: #334155;
+  transition: background 0.2s;
+}
+
+.accordion-header:hover { background: #f1f5f9; }
+.accordion-header.active { background: #eff6ff; color: #0033cc; border-bottom: 1px solid #e2e8f0; }
+
+.accordion-body {
+  padding: 10px 0;
+  background: white;
+}
+
+.content-link {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #475569;
+}
+
+.content-link:hover {
+  background: #f8fafc;
+  padding-left: 30px; /* Hiệu ứng trượt nhẹ */
+  color: #0033cc;
+}
+
+.content-link .icon { font-size: 1.2rem; }
+.content-link .text { flex: 1; font-weight: 500; }
+.content-link .action-hint { font-size: 0.8rem; color: #94a3b8; border: 1px solid #e2e8f0; padding: 2px 8px; border-radius: 4px; }

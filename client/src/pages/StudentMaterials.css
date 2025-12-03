@@ -6,7 +6,11 @@
 }
 
 .mat-search-container { flex: 2; display: flex; gap: 10px; }
-.mat-filter-container { flex: 1; }
+.mat-filter-container {
+  flex: 1;
+  position: relative; /* Để căn chỉnh menu thả xuống */
+  z-index: 100;       /* Để menu đè lên nội dung bên dưới */
+}
 
 .mat-input {
   width: 100%; padding: 12px 20px;
@@ -16,10 +20,102 @@
 }
 .mat-input:focus { border-color: #0033cc; box-shadow: 0 0 0 4px rgba(0, 51, 204, 0.1); }
 
-.mat-select {
-  width: 100%; padding: 12px 20px;
-  border: 1px solid #cbd5e1; border-radius: 50px;
-  background: white; cursor: pointer;
+/* Nút Trigger (Cái thanh hiển thị giá trị hiện tại) */
+.custom-dropdown-trigger {
+  width: 100%;
+  padding: 12px 24px;
+  background: white;
+  border-radius: 50px;
+  border: 1px solid #e2e8f0; /* Viền mỏng tinh tế */
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  color: #334155;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); /* Bóng nhẹ */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Transition mượt */
+}
+
+/* Hiệu ứng Hover vào Trigger */
+.custom-dropdown-trigger:hover {
+  transform: translateY(-2px); /* Nổi lên nhẹ */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Bóng sâu hơn */
+  border-color: #cbd5e1;
+  color: #0033cc;
+}
+
+/* Mũi tên xoay khi mở */
+.dropdown-arrow {
+  transition: transform 0.3s ease;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+.dropdown-open .dropdown-arrow {
+  transform: rotate(180deg);
+  color: #0033cc;
+}
+
+/* Menu thả xuống (Dropdown List) */
+.custom-dropdown-menu {
+  position: absolute;
+  top: 120%;
+  left: 0;
+  width: 100%;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  padding: 8px;
+  border: 1px solid rgba(255,255,255,0.8);
+  
+  /* --- THÊM DÒNG NÀY --- */
+  z-index: 200; /* Phải cao hơn z-index: 90 của lớp phủ */
+  /* -------------------- */
+
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Trạng thái mở menu */
+.dropdown-open .custom-dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Từng dòng Option */
+.dropdown-item {
+  padding: 12px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  color: #475569;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Hover vào từng dòng */
+.dropdown-item:hover {
+  background-color: #eff6ff; /* Xanh rất nhạt */
+  color: #0033cc;
+  padding-left: 28px; /* Hiệu ứng trượt chữ sang phải */
+}
+
+/* Dòng đang được chọn */
+.dropdown-item.selected {
+  background: linear-gradient(135deg, #0033cc 0%, #2563eb 100%);
+  color: white;
+  font-weight: 700;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3); /* Bóng đổ cho item active */
+}
+
+/* Dấu tích cho dòng đang chọn */
+.check-icon {
+  font-size: 1rem;
 }
 
 /* MATERIALS GRID */

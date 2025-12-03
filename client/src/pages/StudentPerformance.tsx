@@ -13,6 +13,7 @@ interface GradeComponent {
 interface CoursePerf {
   courseId: string;
   courseName: string;
+  classId: string;
   status: 'Completed' | 'Studying' | 'Withdrawn';
   finalScore: number | null;
   letterGrade: string | null;
@@ -106,7 +107,7 @@ const StudentPerformance = () => {
 
       <div className="perf-grid">
         {courses.map(course => (
-          <div key={course.courseId} className="perf-card" onClick={() => handleSelectCourse(course.courseId)}>
+          <div key={course.classId} className="perf-card" onClick={() => handleSelectCourse(course.courseId)}>
             <span className={`status-tag ${course.status.toLowerCase()}`}>{course.status}</span>
             <h3 className="perf-title">{course.courseName}</h3>
             <div className="perf-code">{course.courseId}</div>
