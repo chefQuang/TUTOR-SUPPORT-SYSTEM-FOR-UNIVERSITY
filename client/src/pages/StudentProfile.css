@@ -1,0 +1,224 @@
+/* client/src/pages/StudentProfile.css */
+
+.profile-page-container {
+  max-width: 950px;
+  margin: 0 auto;
+  padding-bottom: 80px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* --- 1. PAGE TITLE --- */
+.page-main-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 24px;
+}
+
+/* --- 2. BIG WHITE CARD --- */
+.profile-card-container {
+  background: white;
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+}
+
+/* --- CARD HEADER (Title + Edit Button) --- */
+.card-top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.card-title {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #1f2937;
+  margin: 0;
+}
+
+/* Nút Edit Profile (Màu đen như hình) */
+.btn-edit-black {
+  background-color: #111827; /* Màu đen */
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-edit-black:hover {
+  background-color: #000000;
+}
+
+/* --- AVATAR SECTION --- */
+.avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.avatar-image-wrapper {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  background: white;
+  position: relative; /* Quan trọng để overlay nằm đè lên */
+  cursor: pointer;    /* Hiện bàn tay khi trỏ vào */
+}
+
+/* Lớp phủ màu xám khi hover */
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Màu đen mờ 50% */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0; /* Mặc định ẩn */
+  transition: opacity 0.3s ease;
+}
+
+/* Icon máy ảnh bên trong lớp phủ */
+.camera-icon {
+  color: white;
+  font-size: 1.5rem;
+}
+
+/* Khi hover vào wrapper thì hiện overlay */
+.avatar-image-wrapper:hover .avatar-overlay {
+  opacity: 1;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* --- NEW: Style cho Avatar chữ cái --- */
+.avatar-initials-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Kích thước chữ lớn và đậm */
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: white;
+  /* Màu nền mặc định (có thể ghi đè bằng inline style trong TSX) */
+  background-color: #2563eb; /* Màu xanh dương chủ đạo của app */
+}
+
+.avatar-label {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+/* --- FORM GRID --- */
+.profile-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2 Cột */
+  column-gap: 40px; /* Khoảng cách giữa 2 cột lớn */
+  row-gap: 24px;    /* Khoảng cách giữa các dòng */
+  margin-bottom: 24px;
+}
+
+.form-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151; /* Gray text */
+}
+
+.field-input {
+  width: 100%;
+  padding: 12px 16px;
+  background-color: #f9fafb; /* Light gray background like image */
+  border: 1px solid #f3f4f6; /* Very subtle border */
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #1f2937;
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+/* Trạng thái Read-only */
+.field-input:disabled {
+  background-color: #f9fafb; /* Giữ màu nền xám */
+  color: #4b5563;
+  cursor: default;
+  border-color: transparent; /* Ẩn viền cho giống text box tĩnh */
+}
+
+/* Trạng thái Edit */
+.field-input:not(:disabled):focus {
+  background-color: white;
+  border-color: #d1d5db;
+  outline: 2px solid #2563eb;
+  outline-offset: -1px;
+}
+
+/* --- BIO SECTION (Full Width) --- */
+.bio-section {
+  margin-top: 24px;
+}
+
+.bio-input {
+  min-height: 100px;
+  resize: none;
+}
+
+/* --- SAVE/CANCEL ACTIONS (Hiện khi Edit) --- */
+.edit-actions-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #f3f4f6;
+  animation: fadeIn 0.3s ease;
+}
+
+.btn-cancel {
+  background: white;
+  border: 1px solid #d1d5db;
+  color: #374151;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.btn-cancel:hover { background: #f3f4f6; }
+
+.btn-save {
+  background-color: #2563eb;
+  color: white;
+  font-weight: 600;
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+.btn-save:hover { background-color: #1d4ed8; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }

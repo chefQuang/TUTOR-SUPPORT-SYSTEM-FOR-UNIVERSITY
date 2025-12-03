@@ -2,12 +2,16 @@
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
+import multer from 'multer'; // <--- Import multer
+import path from 'path';     // <--- Import path
+import fs from 'fs';         // <--- Import fs
+
 import { login } from './controllers/mainController';
 // Import controller mới
 //import { searchClasses, registerClass, getStudentStats, getStudentSchedule } from './controllers/studentController';
 import { 
-  searchClasses, registerClass, getStudentStats, getStudentSchedule, 
-  getUpcomingSessions, getCoursePerformance, getPerformanceDetail, getMaterials, getMaterialDetail
+  searchClasses, registerClass, getStudentStats, getStudentSchedule, getFeedbackCandidates, submitFeedback, deleteFeedback,
+  getUpcomingSessions, getCoursePerformance, getPerformanceDetail, getMaterials, getMaterialDetail, getStudentProfile, updateStudentProfile, uploadAvatar
 } from './controllers/studentController';
 import { 
   getMyCourses, getCourseContent, getCourseItem, 
@@ -19,6 +23,34 @@ const PORT = 5000;
 
 app.use(cors());
 app.use(bodyParser.json());
+
+
+const uploadDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadDir)){
+    fs.mkdirSync(uploadDir);
+}
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadDir)
+  },
+  filename: function (req, file, cb) {
+    // Đặt tên file: avatar-studentId-timestamp.jpg
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'avatar-' + uniqueSuffix + path.extname(file.originalname))
+  }
+});
+
+const upload = multer({ storage: storage });
+
+// 3. Cho phép Client truy cập thư mục uploads
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+
+
+
+
+
+
 
 // --- ROUTES ---
 app.post('/api/login', login);
@@ -32,6 +64,13 @@ app.get('/api/student/performance', getCoursePerformance);
 app.get('/api/student/performance-detail', getPerformanceDetail);
 app.get('/api/student/materials', getMaterials);
 app.get('/api/student/material-detail', getMaterialDetail);
+app.get('/api/student/feedback-candidates', getFeedbackCandidates); 
+app.post('/api/student/feedback', submitFeedback); 
+app.delete('/api/student/feedback', deleteFeedback);
+app.get('/api/student/profile', getStudentProfile); // <--- Add
+app.put('/api/student/profile', updateStudentProfile); // <--- Add
+app.post('/api/student/upload-avatar', upload.single('avatar'), uploadAvatar);
+
 
 // Course Learning Routes
 app.get('/api/courses/my-courses', getMyCourses);

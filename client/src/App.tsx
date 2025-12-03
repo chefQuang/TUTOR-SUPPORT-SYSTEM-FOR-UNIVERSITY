@@ -10,7 +10,9 @@ import StudentMaterials from './pages/StudentMaterials';
 import MyCourses from './pages/MyCourses';
 import AssignmentDetail from './pages/AssignmentDetail';
 import QuizDetail from './pages/QuizDetail';
+import StudentFeedback from './pages/StudentFeedback';
 import './App.css'; 
+import StudentProfile from './pages/StudentProfile';
 
 function App() {
   const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -48,7 +50,14 @@ function App() {
         <Route path="/student/courses/:courseId/quiz/:itemId" element={
           <PrivateRoute><QuizDetail /></PrivateRoute>
         } />
-        
+        <Route path="/student/feedback" element={
+          <PrivateRoute><StudentFeedback /></PrivateRoute>
+        } />
+        <Route path="/student/profile" element={
+          <PrivateRoute><StudentProfile /></PrivateRoute>
+        } />
+
+
         <Route path="/tutor/home" element={
           <PrivateRoute>
             <TutorDashboard />

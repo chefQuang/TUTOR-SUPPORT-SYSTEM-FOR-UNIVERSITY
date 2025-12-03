@@ -14,6 +14,12 @@ export interface User {
   role: Role;
   email: string;
   registeredClassIds: string[]; // Thêm trường này để lưu môn học sinh viên đã đăng ký
+  studentIdDisplay?: string; // e.g., "2012345"
+  major?: string;
+  phoneNumber?: string;
+  currentYear?: string;
+  bio?: string;
+  avatarUrl?: string;
 }
 
 // Session: Một buổi học cụ thể (Theo Class Diagram)
@@ -149,7 +155,13 @@ export const USERS: User[] = [
     fullName: "Nguyễn Văn A",
     role: Role.STUDENT,
     email: "studentA@hcmut.edu.vn",
-    registeredClassIds: [] 
+    registeredClassIds: [] ,
+    studentIdDisplay: "2013456",
+    major: "Computer Science",
+    phoneNumber: "+84 909 123 456",
+    currentYear: "Year 3",
+    bio: "Passionate about AI and Software Engineering. Looking for tutors in advanced algorithms.",
+    avatarUrl: "" // Empty string will trigger default initial avatar
   },
   {
     id: "TT001",
@@ -360,3 +372,20 @@ export const COURSE_CONTENTS: Record<string, CourseSection[]> = {
     }
   ]
 };
+export interface Feedback {
+  id: string;
+  studentId: string; // Used for duplicate checks, but treated anonymously in reports
+  courseId: string;
+  courseName: string; // Stored for easier display
+  overallRating: number;
+  teachingQuality: number;
+  materialQuality: number;
+  difficultyLevel: number;
+  comment: string;
+  createdAt: string;
+}
+
+// ... existing code ...
+
+// Add this Mock Array at the end of the file
+export const FEEDBACKS: Feedback[] = [];

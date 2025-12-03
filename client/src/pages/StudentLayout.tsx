@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
 import './StudentLayout.css';
 
 interface LayoutProps {
@@ -10,15 +11,48 @@ interface LayoutProps {
 const StudentLayout: React.FC<LayoutProps> = ({ children, title }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  
+  // CẬP NHẬT 1: Dùng State để User có thể cập nhật động
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user') || '{}'));
+  const [pendingCount, setPendingCount] = useState(0);
+
+  // CẬP NHẬT 2: Lắng nghe sự kiện cập nhật user (từ trang Profile)
+  useEffect(() => {
+    const handleUserUpdate = () => {
+      const updatedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      setUser(updatedUser);
+    };
+
+    window.addEventListener('user-updated', handleUserUpdate);
+    return () => {
+      window.removeEventListener('user-updated', handleUserUpdate);
+    };
+  }, []);
+
+  // Fetch Feedback Pending Count (Giữ nguyên)
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      if (!user.id) return;
+      try {
+        const res = await axios.get(`http://localhost:5000/api/student/feedback-candidates?studentId=${user.id}`);
+        if (res.data.success) {
+          const count = res.data.data.filter((c: any) => !c.feedbackData).length;
+          setPendingCount(count);
+        }
+      } catch (error) { console.error(error); }
+    };
+    fetchPendingCount();
+  }, [user.id]);
 
   const menuItems = [
     { label: 'Home', path: '/student/home', icon: '🏠' },
     { label: 'Schedule', path: '/student/schedule', icon: '📅' },
-    { label: 'Register Course', path: '/student/register', icon: '🎓' }, // Nút quan trọng
-    { label: 'Course Performance', path: '/student/performance', icon: '📊' },
-    { label: 'My Courses', path: '/student/courses', icon: '👥' },
+    { label: 'Groups', path: '/student/groups', icon: '👥' },
+    { label: 'Register Course', path: '/student/register', icon: '🎓' },
+    { label: 'Progress', path: '/student/performance', icon: '📊' },
+    
     { label: 'Materials', path: '/student/materials', icon: '📚' },
+    { label: 'Feedback', path: '/student/feedback', icon: '💬' },
     { label: 'Profile', path: '/student/profile', icon: '👤' },
   ];
 
@@ -29,7 +63,6 @@ const StudentLayout: React.FC<LayoutProps> = ({ children, title }) => {
 
   return (
     <div className="student-layout">
-      {/* Sidebar */}
       <aside className="std-sidebar">
         <div className="brand">
           <div className="brand-logo">BK</div>
@@ -43,7 +76,10 @@ const StudentLayout: React.FC<LayoutProps> = ({ children, title }) => {
               className={`menu-item ${location.pathname === item.path ? 'active' : ''}`}
               onClick={() => navigate(item.path)}
             >
-              <span>{item.icon}</span> {item.label}
+              <span style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                <span>{item.icon}</span> {item.label}
+              </span>
+              
             </li>
           ))}
           <li className="menu-item logout-btn" onClick={handleLogout}>
@@ -52,13 +88,27 @@ const StudentLayout: React.FC<LayoutProps> = ({ children, title }) => {
         </ul>
       </aside>
 
-      {/* Main Content */}
       <main className="std-content">
         <header className="page-header">
           <h1 style={{margin: 0, fontSize: '1.5rem', color: '#1e293b'}}>{title}</h1>
           <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+            
+            {/* Tên người dùng */}
             <span style={{fontWeight: 600, color: '#334155'}}>{user.fullName}</span>
-            <div className="user-avatar">{user.fullName?.charAt(0)}</div>
+            
+            {/* CẬP NHẬT 3: Hiển thị Avatar ở góc phải trên */}
+            <div className="user-avatar" style={{overflow:'hidden'}}>
+              {user.avatarUrl ? (
+                <img 
+                  src={user.avatarUrl} 
+                  alt="U" 
+                  style={{width:'100%', height:'100%', objectFit:'cover'}} 
+                />
+              ) : (
+                user.fullName?.charAt(0).toUpperCase()
+              )}
+            </div>
+
           </div>
         </header>
         {children}
