@@ -217,3 +217,179 @@
 
 .no-sessions { margin-top: 40px; text-align: center; color: #94a3b8; }
 .no-sessions-icon { font-size: 3rem; margin-bottom: 10px; display: block; opacity: 0.5; }
+
+/* --- MODAL CHANGE TIME (VERSION 2.0 - SANG XỊN) --- */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(15, 23, 42, 0.4); /* Nền tối mờ nhẹ */
+  backdrop-filter: blur(8px); /* Kính mờ mạnh hơn */
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+  opacity: 0; animation: fadeIn 0.3s forwards;
+}
+
+@keyframes fadeIn { to { opacity: 1; } }
+
+.modal-content {
+  background: white;
+  padding: 40px;
+  border-radius: 28px;
+  width: 480px;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.3);
+  transform: scale(0.95); opacity: 0;
+  animation: popUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  position: relative;
+}
+
+@keyframes popUp { to { transform: scale(1); opacity: 1; } }
+
+.modal-header { text-align: center; margin-bottom: 32px; }
+.modal-title { margin: 0 0 8px 0; font-size: 1.6rem; color: #1e293b; font-weight: 800; letter-spacing: -0.5px; }
+.modal-subtitle { color: #64748b; font-size: 1rem; }
+
+/* --- CUSTOM DATE PICKER TRIGGER --- */
+.date-trigger-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 24px;
+}
+
+.date-trigger-box:hover { background: white; border-color: #cbd5e1; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+.date-label { font-size: 0.8rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px; }
+.date-value { font-size: 1.1rem; font-weight: 600; color: #1e293b; }
+.date-icon { font-size: 1.4rem; color: #3b82f6; }
+
+/* --- POPUP CALENDAR (Mini) --- */
+.mini-calendar {
+  background: white; border: 1px solid #f1f5f9;
+  border-radius: 16px; padding: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  position: absolute; top: 120px; left: 50%; transform: translateX(-50%);
+  width: 320px; z-index: 50;
+  animation: slideDown 0.2s ease-out;
+}
+@keyframes slideDown { from { opacity: 0; transform: translate(-50%, -10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+/* Tận dụng lại CSS Calendar cũ nhưng thu nhỏ */
+.mini-calendar .calendar-grid { gap: 4px; }
+.mini-calendar .day-cell { min-height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.9rem; }
+.mini-calendar .day-cell:hover { background: #eff6ff; }
+.mini-calendar .day-cell.selected { background: #0033cc; color: white; box-shadow: 0 4px 10px rgba(0, 51, 204, 0.3); }
+.mini-calendar .day-name { font-size: 0.75rem; margin-bottom: 4px; }
+
+/* --- TIME PICKER (2 Cột) --- */
+/* Grid 2 cột cân đối, khoảng cách rộng */
+.time-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px; /* Tăng khoảng cách để không bị dính */
+  margin-bottom: 40px;
+  align-items: start;
+}
+
+/* Wrapper cho mỗi ô giờ */
+.time-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Label sang trọng */
+.time-label {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-left: 4px;
+}
+
+/* Ô nhập giờ (Style như một cái thẻ nổi) */
+.time-card {
+  position: relative;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 0; /* Padding xử lý trong input */
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* Hiệu ứng "Bồng bềnh" khi hover/focus */
+.time-card:hover, .time-card:focus-within {
+  background: white;
+  transform: translateY(-4px); /* Nổi lên */
+  box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -5px rgba(0, 0, 0, 0.04);
+  border-color: #3b82f6;
+}
+
+/* Icon đồng hồ trang trí */
+.time-icon-wrapper {
+  position: absolute;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  transition: color 0.3s;
+  pointer-events: none; /* Để click xuyên qua vào input */
+}
+
+.time-card:focus-within .time-icon-wrapper {
+  color: #0033cc;
+}
+
+/* Input chính */
+.time-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 18px 16px 18px 48px; /* Padding trái lớn để né icon */
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e293b;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  cursor: pointer;
+}
+
+/* Tùy chỉnh icon đồng hồ mặc định của trình duyệt */
+.time-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0; /* Ẩn icon mặc định xấu xí đi, dùng icon custom của mình */
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%; height: 100%;
+}
+
+/* --- ACTIONS (Giữ nguyên hoặc tinh chỉnh nhẹ) --- */
+.modal-actions {
+  display: flex;
+  gap: 20px;
+}
+
+.btn-modal {
+  flex: 1; padding: 16px; border-radius: 14px;
+  font-weight: 700; font-size: 1rem; border: none; cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-modal.cancel { background: #f1f5f9; color: #64748b; }
+.btn-modal.cancel:hover { background: #e2e8f0; color: #334155; }
+
+.btn-modal.confirm {
+  background: linear-gradient(135deg, #0033cc 0%, #2563eb 100%);
+  color: white;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+}
+.btn-modal.confirm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 25px rgba(37, 99, 235, 0.35);
+}
