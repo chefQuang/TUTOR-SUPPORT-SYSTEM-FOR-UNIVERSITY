@@ -11,6 +11,7 @@ import MyCourses from './pages/MyCourses';
 import AssignmentDetail from './pages/AssignmentDetail';
 import QuizDetail from './pages/QuizDetail';
 import StudentFeedback from './pages/StudentFeedback';
+import TutorSchedule from './pages/TutorSchedule';
 import './App.css'; 
 import StudentProfile from './pages/StudentProfile';
 
@@ -62,6 +63,9 @@ function App() {
           <PrivateRoute>
             <TutorDashboard />
           </PrivateRoute>
+        } />
+        <Route path="/tutor/schedule" element={
+          <PrivateRoute><TutorSchedule /></PrivateRoute>
         } />
         
         <Route path="/admin/dashboard" element={
