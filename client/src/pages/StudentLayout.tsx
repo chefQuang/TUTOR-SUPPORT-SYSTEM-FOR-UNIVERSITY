@@ -19,7 +19,9 @@ const StudentLayout: React.FC<LayoutProps> = ({ children, title }) => {
     { label: 'Course Performance', path: '/student/performance', icon: '📊' },
     { label: 'Groups', path: '/student/groups', icon: '👥' },
     { label: 'Materials', path: '/student/materials', icon: '📚' },
+    { label: 'Feedback', path: '/student/feedback', icon: '💬' },
     { label: 'Profile', path: '/student/profile', icon: '👤' },
+
   ];
 
   const handleLogout = () => {

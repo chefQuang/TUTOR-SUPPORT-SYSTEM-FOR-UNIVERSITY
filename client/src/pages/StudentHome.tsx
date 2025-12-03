@@ -16,6 +16,7 @@ interface UpcomingSession {
 const StudentHome = () => {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const [pendingFeedbackCount, setPendingFeedbackCount] = useState(0);
   const [stats, setStats] = useState({
     registeredCount: 0,
     tutorsCount: 0,
@@ -41,6 +42,8 @@ const StudentHome = () => {
         const res = await axios.get(`http://localhost:5000/api/student/upcoming?studentId=${user.id}`);
         if(res.data.success) {
           setUpcoming(res.data.data);
+          const count = res.data.data.filter((c: any) => !c.feedbackData).length;
+          setPendingFeedbackCount(count);
         }
       } catch (err) { console.error(err); }
     };
@@ -129,9 +132,19 @@ const StudentHome = () => {
             <button className="action-btn">
               <span>📅</span> Book Session
             </button>
-            <button className="action-btn">
+            <button className="action-btn" onClick={() => navigate('/student/feedback')} style={{justifyContent: 'space-between'}}>
+            <div style={{display:'flex', gap:'10px', alignItems:'center'}}>
               <span>💬</span> Send Feedback
-            </button>
+            </div>
+            {pendingFeedbackCount > 0 && (
+              <span style={{
+                background: '#ef4444', color: 'white', fontSize: '0.75rem', 
+                padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold'
+              }}>
+                {pendingFeedbackCount}
+              </span>
+            )}
+          </button>
           </div>
 
           <div className="section-card">

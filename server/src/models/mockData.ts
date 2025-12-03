@@ -235,3 +235,20 @@ export const MATERIALS: Material[] = [
     previewPages: 3
   }
 ];
+export interface Feedback {
+  id: string;
+  studentId: string; // Used for duplicate checks, but treated anonymously in reports
+  courseId: string;
+  courseName: string; // Stored for easier display
+  overallRating: number;
+  teachingQuality: number;
+  materialQuality: number;
+  difficultyLevel: number;
+  comment: string;
+  createdAt: string;
+}
+
+// ... existing code ...
+
+// Add this Mock Array at the end of the file
+export const FEEDBACKS: Feedback[] = [];

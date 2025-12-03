@@ -1,9 +1,8 @@
 // server/src/controllers/studentController.ts
 import type { Request, Response } from 'express';
-//import { COURSES, USERS, GRADES, type Class, type Session, CourseStatus } from '../models/mockData';
-import { COURSES, USERS, GRADES, MATERIALS, type Class, CourseStatus } from '../models/mockData';
+import { COURSES, USERS, GRADES, MATERIALS, FEEDBACKS, type Class, CourseStatus, type Feedback } from '../models/mockData';
 
-// 1. Tìm kiếm Môn học (Trả về môn học + danh sách lớp của nó)
+// 1. Tìm kiếm Môn học
 export const searchClasses = (req: Request, res: Response) => {
   const query = req.query.q as string;
   const studentId = req.query.studentId as string;
@@ -16,7 +15,6 @@ export const searchClasses = (req: Request, res: Response) => {
   const student = USERS.find(u => u.id === studentId);
   const lowerQuery = query.toLowerCase();
 
-  // Tìm các Course khớp tên hoặc mã
   const matchedCourses = COURSES.filter(c => 
     c.courseId.toLowerCase().includes(lowerQuery) || 
     c.courseName.toLowerCase().includes(lowerQuery)
@@ -27,8 +25,6 @@ export const searchClasses = (req: Request, res: Response) => {
     return;
   }
 
-  // Clone dữ liệu để thêm cờ "isRegistered" cho từng lớp để FE dễ hiển thị
-  // Logic: Duyệt qua từng môn, từng lớp, xem ID lớp có trong registeredClassIds của SV không
   const result = matchedCourses.map(course => ({
     ...course,
     classes: course.classes.map(cls => ({
@@ -47,8 +43,6 @@ const calculateGPA = (components: {weight: number, score: number}[]) => {
     totalScore += c.score * (c.weight / 100);
     totalWeight += c.weight;
   });
-  // Nếu chưa đủ đầu điểm (đang học), điểm tạm tính trên số đầu điểm đã có hoặc trả về 0 tùy logic
-  // Ở đây ta cứ tính tổng theo weight đã có
   return parseFloat(totalScore.toFixed(2));
 };
 
@@ -64,13 +58,11 @@ const getLetterGrade = (score: number) => {
   return "F";
 };
 
-// 2. Đăng ký Lớp (Logic phức tạp hơn vì phải tìm Class nằm sâu trong Course)
+// 2. Đăng ký Lớp
 export const registerClass = (req: Request, res: Response) => {
   const { studentId, classId } = req.body;
-
   const student = USERS.find(u => u.id === studentId);
   
-  // Tìm Class và Course
   let targetClass = null;
   let parentCourse = null;
 
@@ -88,20 +80,17 @@ export const registerClass = (req: Request, res: Response) => {
     return;
   }
 
-  // LOGIC MỚI: Kiểm tra trong bảng điểm (GRADES) xem môn này đang ở trạng thái nào
   const currentGradeRecord = GRADES.find(g => 
     g.studentId === studentId && 
     g.courseId === parentCourse.courseId &&
-    g.status === CourseStatus.STUDYING // Chỉ chặn nếu đang học
+    g.status === CourseStatus.STUDYING 
   );
 
   if (currentGradeRecord) {
-    // Nếu tìm thấy record đang STUDYING -> Chặn
-    res.status(400).json({ success: false, message: `You are currently studying ${parentCourse.courseName}. You cannot register again until you finish or withdraw.` });
+    res.status(400).json({ success: false, message: `You are currently studying ${parentCourse.courseName}.` });
     return;
   }
 
-  // Logic cũ: Kiểm tra trùng lớp trong danh sách đăng ký (đề phòng spam request)
   const siblingClassIds = parentCourse.classes.map(c => c.classId);
   const isEnrolledInSession = student.registeredClassIds.some(id => siblingClassIds.includes(id));
   if (isEnrolledInSession) {
@@ -109,7 +98,6 @@ export const registerClass = (req: Request, res: Response) => {
     return;
   }
 
-  // Success
   student.registeredClassIds.push(classId);
   targetClass.enrolledStudentIds.push(studentId);
 
@@ -120,7 +108,7 @@ export const registerClass = (req: Request, res: Response) => {
   });
 };
 
-// 3. Stats (Giữ nguyên hoặc update nhẹ)
+// 3. Stats
 export const getStudentStats = (req: Request, res: Response) => {
   const studentId = req.query.studentId as string;
   const student = USERS.find(u => u.id === studentId);
@@ -137,7 +125,7 @@ export const getStudentStats = (req: Request, res: Response) => {
   });
 }
 
-// 4. Lấy lịch học (Schedule)
+// 4. Lấy lịch học
 export const getStudentSchedule = (req: Request, res: Response) => {
   const studentId = req.query.studentId as string;
   const student = USERS.find(u => u.id === studentId);
@@ -147,14 +135,11 @@ export const getStudentSchedule = (req: Request, res: Response) => {
     return;
   }
 
-  // Logic: Duyệt qua tất cả môn, tất cả lớp.
-  // Nếu lớp đó có trong danh sách đã đăng ký của SV -> Lấy hết session ra
   let allSessions: any[] = [];
 
   COURSES.forEach(course => {
     course.classes.forEach(cls => {
       if (student.registeredClassIds.includes(cls.classId)) {
-        // Map thêm thông tin Môn học và Giảng viên vào từng buổi học để hiển thị
         const sessionsWithInfo = cls.sessions.map(s => ({
           ...s,
           courseName: course.courseName,
@@ -170,19 +155,14 @@ export const getStudentSchedule = (req: Request, res: Response) => {
   res.status(200).json({ success: true, data: allSessions });
 };
 
-// 4. API Lấy Upcoming Sessions (Logic thông minh)
+// 5. Upcoming Sessions
 export const getUpcomingSessions = (req: Request, res: Response) => {
   const studentId = req.query.studentId as string;
   const student = USERS.find(u => u.id === studentId);
   if (!student) { res.status(404).json({ success: false }); return; }
 
-  // 1. Gom tất cả buổi học của SV
   let allSessions: any[] = [];
-  const now = new Date(); // Thời gian thực tế trên server
-  
-  // Fake ngày giờ hiện tại để dễ test (Giả sử hôm nay là ngày có tiết học trong Mock Data)
-  // Bạn có thể xóa dòng này để lấy ngày thật
-  // const now = new Date("2025-11-03T06:00:00"); 
+  const now = new Date(); 
 
   COURSES.forEach(course => {
     course.classes.forEach(cls => {
@@ -192,7 +172,6 @@ export const getUpcomingSessions = (req: Request, res: Response) => {
             ...s,
             courseName: course.courseName,
             tutorName: cls.tutorName,
-            // Chuyển string date + time thành Date object để so sánh
             dateTime: new Date(`${s.date}T${s.time.split(' - ')[0]}:00`)
           });
         });
@@ -200,7 +179,6 @@ export const getUpcomingSessions = (req: Request, res: Response) => {
     });
   });
 
-  // 2. Lọc các buổi chưa diễn ra (tính từ thời điểm hiện tại)
   const futureSessions = allSessions
     .filter(s => s.dateTime > now)
     .sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
@@ -210,14 +188,13 @@ export const getUpcomingSessions = (req: Request, res: Response) => {
     return;
   }
 
-  // 3. Logic: Lấy các buổi của "Ngày gần nhất có lịch"
-  const nextSessionDate = futureSessions[0].date; // Ngày của buổi sớm nhất
+  const nextSessionDate = futureSessions[0].date;
   const sessionsToShow = futureSessions.filter(s => s.date === nextSessionDate);
 
   res.status(200).json({ success: true, data: sessionsToShow });
 };
 
-// API Lấy danh sách điểm (Performance List)
+// 6. Performance List
 export const getCoursePerformance = (req: Request, res: Response) => {
   const studentId = req.query.studentId as string;
   const query = (req.query.q as string || "").toLowerCase();
@@ -228,7 +205,6 @@ export const getCoursePerformance = (req: Request, res: Response) => {
     const course = COURSES.find(c => c.courseId === grade.courseId);
     if (!course) return null;
 
-    // Filter search
     if (query && !course.courseName.toLowerCase().includes(query) && !course.courseId.toLowerCase().includes(query)) {
       return null;
     }
@@ -247,7 +223,7 @@ export const getCoursePerformance = (req: Request, res: Response) => {
   res.status(200).json({ success: true, data: result });
 };
 
-// API Lấy chi tiết điểm 1 môn (Performance Detail)
+// 7. Performance Detail
 export const getPerformanceDetail = (req: Request, res: Response) => {
   const { studentId, courseId } = req.query;
   
@@ -274,19 +250,16 @@ export const getPerformanceDetail = (req: Request, res: Response) => {
   });
 };
 
-// API MỚI: Lấy danh sách Materials
+// 8. Materials List
 export const getMaterials = (req: Request, res: Response) => {
-  const { q, major } = req.query; // Search query và Major filter
-  
+  const { q, major } = req.query;
   let result = MATERIALS;
 
-  // Filter theo tên
   if (q) {
     const lowerQ = (q as string).toLowerCase();
     result = result.filter(m => m.title.toLowerCase().includes(lowerQ));
   }
 
-  // Filter theo ngành
   if (major && major !== "All Majors") {
     result = result.filter(m => m.majors.includes(major as any));
   }
@@ -294,14 +267,100 @@ export const getMaterials = (req: Request, res: Response) => {
   res.status(200).json({ success: true, data: result });
 };
 
-// API MỚI: Lấy chi tiết Material
+// 9. Material Detail
 export const getMaterialDetail = (req: Request, res: Response) => {
   const { id } = req.query;
   const material = MATERIALS.find(m => m.id === id);
-  
   if (!material) {
     res.status(404).json({ success: false, message: "Material not found" });
     return;
   }
   res.status(200).json({ success: true, data: material });
 }
+
+// --------------------------------------------------------
+// CÁC HÀM MỚI CHO FEEDBACK (ĐÃ SỬA LỖI TYPESCRIPT)
+// --------------------------------------------------------
+
+// 10. Lấy danh sách Feedback Candidates (Bao gồm dữ liệu cũ nếu có)
+export const getFeedbackCandidates = (req: Request, res: Response) => {
+  const studentId = req.query.studentId as string;
+
+  // Chỉ lấy các môn COMPLETED
+  const completedRecords = GRADES.filter(g => 
+    g.studentId === studentId && g.status === CourseStatus.COMPLETED
+  );
+
+  const result = completedRecords.map(record => {
+    const course = COURSES.find(c => c.courseId === record.courseId);
+    const existingFeedback = FEEDBACKS.find(f => f.studentId === studentId && f.courseId === record.courseId);
+
+    return {
+      courseId: record.courseId,
+      courseName: course?.courseName || record.courseId,
+      credits: course?.credits || 3,
+      tutorName: "Dr. John Smith", 
+      feedbackData: existingFeedback || null 
+    };
+  });
+
+  res.status(200).json({ success: true, data: result });
+};
+
+// 11. Submit/Update Feedback (Đã sửa lỗi TS2532)
+export const submitFeedback = (req: Request, res: Response) => {
+  const { studentId, courseId, ratings, comment, courseName } = req.body;
+
+  // Validate Course
+  const gradeRecord = GRADES.find(g => g.studentId === studentId && g.courseId === courseId);
+  if (!gradeRecord || gradeRecord.status !== CourseStatus.COMPLETED) {
+    res.status(400).json({ success: false, message: "Invalid course status." });
+    return;
+  }
+
+  // Tìm index và object cũ an toàn
+  const existingIndex = FEEDBACKS.findIndex(f => f.studentId === studentId && f.courseId === courseId);
+  const existingFeedback = FEEDBACKS[existingIndex]; // Có thể là undefined nếu index = -1
+
+  const feedbackData: Feedback = {
+    // SỬA LỖI Ở ĐÂY: Dùng optional chaining (?.id) để tránh lỗi Object possibly undefined
+    id: existingFeedback?.id || "FB-" + Date.now(),
+    studentId,
+    courseId,
+    courseName,
+    overallRating: ratings.overall,
+    teachingQuality: ratings.teaching,
+    materialQuality: ratings.material,
+    difficultyLevel: ratings.difficulty,
+    comment,
+    createdAt: new Date().toISOString()
+  };
+
+  if (existingIndex > -1) {
+    FEEDBACKS[existingIndex] = feedbackData;
+    res.status(200).json({ success: true, message: "Feedback updated successfully!" });
+  } else {
+    FEEDBACKS.push(feedbackData);
+    res.status(200).json({ success: true, message: "Feedback submitted successfully!" });
+  }
+};
+
+// 12. Delete Feedback
+export const deleteFeedback = (req: Request, res: Response) => {
+  const { studentId, courseId } = req.body;
+
+  const index = FEEDBACKS.findIndex(f => f.studentId === studentId && f.courseId === courseId);
+  if (index > -1) {
+    FEEDBACKS.splice(index, 1);
+    res.status(200).json({ success: true, message: "Feedback withdrawn successfully." });
+  } else {
+    res.status(404).json({ success: false, message: "Feedback not found." });
+  }
+};
+
+// 13. Get Feedback History
+export const getStudentFeedbackHistory = (req: Request, res: Response) => {
+  const studentId = req.query.studentId as string;
+  const history = FEEDBACKS.filter(f => f.studentId === studentId);
+  res.status(200).json({ success: true, data: history });
+};

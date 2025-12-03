@@ -7,7 +7,7 @@ import { login } from './controllers/mainController';
 //import { searchClasses, registerClass, getStudentStats, getStudentSchedule } from './controllers/studentController';
 import { 
   searchClasses, registerClass, getStudentStats, getStudentSchedule, 
-  getUpcomingSessions, getCoursePerformance, getPerformanceDetail, getMaterials, getMaterialDetail
+  getUpcomingSessions, getCoursePerformance, getPerformanceDetail, getMaterials, getMaterialDetail, submitFeedback, getFeedbackCandidates, deleteFeedback
 } from './controllers/studentController';
 
 const app = express();
@@ -28,6 +28,9 @@ app.get('/api/student/performance', getCoursePerformance);
 app.get('/api/student/performance-detail', getPerformanceDetail);
 app.get('/api/student/materials', getMaterials);
 app.get('/api/student/material-detail', getMaterialDetail);
+app.get('/api/student/feedback-candidates', getFeedbackCandidates); 
+app.post('/api/student/feedback', submitFeedback); 
+app.delete('/api/student/feedback', deleteFeedback);
 
 app.get('/', (req, res) => {
   res.send('Tutor Support System API is running...');
