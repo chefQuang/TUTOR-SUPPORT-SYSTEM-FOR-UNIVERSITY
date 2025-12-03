@@ -47,9 +47,10 @@ const StudentLayout: React.FC<LayoutProps> = ({ children, title }) => {
   const menuItems = [
     { label: 'Home', path: '/student/home', icon: '🏠' },
     { label: 'Schedule', path: '/student/schedule', icon: '📅' },
-    { label: 'Register Course', path: '/student/register', icon: '🎓' },
-    { label: 'Course Performance', path: '/student/performance', icon: '📊' },
     { label: 'Groups', path: '/student/groups', icon: '👥' },
+    { label: 'Register Course', path: '/student/register', icon: '🎓' },
+    { label: 'Progress', path: '/student/performance', icon: '📊' },
+    
     { label: 'Materials', path: '/student/materials', icon: '📚' },
     { label: 'Feedback', path: '/student/feedback', icon: '💬' },
     { label: 'Profile', path: '/student/profile', icon: '👤' },
