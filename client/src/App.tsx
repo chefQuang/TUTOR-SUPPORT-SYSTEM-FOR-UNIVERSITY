@@ -8,6 +8,7 @@ import StudentSchedule from './pages/StudentSchedule';
 import StudentPerformance from './pages/StudentPerformance';
 import StudentMaterials from './pages/StudentMaterials';
 import StudentFeedback from './pages/StudentFeedback';
+import StudentProfile from './pages/StudentProfile';
 import './App.css'; 
 
 function App() {
@@ -39,7 +40,10 @@ function App() {
         } />
         <Route path="/student/feedback" element={
           <PrivateRoute><StudentFeedback /></PrivateRoute>
-} />
+        } />
+        <Route path="/student/profile" element={
+          <PrivateRoute><StudentProfile /></PrivateRoute>
+        } />
         <Route path="/tutor/home" element={
           <PrivateRoute>
             <TutorDashboard />

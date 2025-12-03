@@ -364,3 +364,71 @@ export const getStudentFeedbackHistory = (req: Request, res: Response) => {
   const history = FEEDBACKS.filter(f => f.studentId === studentId);
   res.status(200).json({ success: true, data: history });
 };
+export const getStudentProfile = (req: Request, res: Response) => {
+  const studentId = req.query.studentId as string;
+  const user = USERS.find(u => u.id === studentId);
+
+  if (!user) {
+    res.status(404).json({ success: false, message: "User not found" });
+    return;
+  }
+
+  // Return only profile-relevant info (exclude password)
+  const profileData = {
+    fullName: user.fullName,
+    email: user.email,
+    studentIdDisplay: user.studentIdDisplay || "N/A",
+    major: user.major || "",
+    phoneNumber: user.phoneNumber || "",
+    currentYear: user.currentYear || "",
+    bio: user.bio || "",
+    avatarUrl: user.avatarUrl || ""
+  };
+
+  res.status(200).json({ success: true, data: profileData });
+};
+
+// NEW: Update Student Profile
+export const updateStudentProfile = (req: Request, res: Response) => {
+  const { studentId, fullName, phoneNumber, major, currentYear, bio } = req.body;
+
+  // Thay vì findIndex, ta dùng find để lấy trực tiếp object
+  const user = USERS.find(u => u.id === studentId);
+  
+  // Kiểm tra nếu user không tồn tại
+  if (!user) {
+    res.status(404).json({ success: false, message: "User not found" });
+    return;
+  }
+
+  // Update trực tiếp trên object (dữ liệu trong mảng USERS sẽ tự động cập nhật theo)
+  user.fullName = fullName;
+  user.phoneNumber = phoneNumber;
+  user.major = major;
+  user.currentYear = currentYear;
+  user.bio = bio;
+
+  res.status(200).json({ success: true, message: "Profile updated successfully!" });
+};
+export const uploadAvatar = (req: Request, res: Response) => {
+  const studentId = req.body.studentId;
+  const file = req.file;
+
+  if (!file) {
+    res.status(400).json({ success: false, message: "No file uploaded" });
+    return;
+  }
+
+  // Tạo URL để truy cập ảnh
+  // Ví dụ: http://localhost:5000/uploads/avatar-123.jpg
+  const avatarUrl = `http://localhost:5000/uploads/${file.filename}`;
+
+  // Cập nhật vào Database (Mock Data)
+  const user = USERS.find(u => u.id === studentId);
+  if (user) {
+    user.avatarUrl = avatarUrl;
+    res.status(200).json({ success: true, avatarUrl: avatarUrl, message: "Avatar updated!" });
+  } else {
+    res.status(404).json({ success: false, message: "User not found" });
+  }
+};
