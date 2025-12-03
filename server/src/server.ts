@@ -17,6 +17,8 @@ import {
   getMyCourses, getCourseContent, getCourseItem, 
   getSubmissionStatus, submitAssignment, submitQuiz, removeSubmission 
 } from './controllers/courseController';
+import { getTutorSchedule, updateSession, cancelSession } from './controllers/tutorController';
+
 
 const app = express();
 const PORT = 5000;
@@ -80,6 +82,11 @@ app.get('/api/courses/submission', getSubmissionStatus);
 app.post('/api/courses/submit-assignment', submitAssignment);
 app.post('/api/courses/submit-quiz', submitQuiz);
 app.post('/api/courses/remove-submission', removeSubmission); 
+
+//Tutor Routes
+app.get('/api/tutor/schedule', getTutorSchedule);
+app.post('/api/tutor/update-session', updateSession);
+app.post('/api/tutor/cancel-session', cancelSession);
 
 app.get('/', (req, res) => {
   res.send('Tutor Support System API is running...');
