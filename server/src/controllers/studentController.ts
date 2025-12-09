@@ -1,7 +1,104 @@
 // server/src/controllers/studentController.ts
 import type { Request, Response } from 'express';
 //import { COURSES, USERS, GRADES, type Class, type Session, CourseStatus } from '../models/mockData';
-import { COURSES, USERS, GRADES, MATERIALS, type Class, CourseStatus } from '../models/mockData';
+import { COURSES, USERS, GRADES, MATERIALS, FEEDBACKS, CONSULTATIONS, SCHEDULES, NOTIFICATIONS, type Class, CourseStatus, Feedback, Consultation, Role, Notification } from '../models/mockData';
+
+const markSlotAsTaken = (userId: string, dateStr: string, time: string) => {
+  // 1. Tìm xem user này đã có record cho ngày này chưa
+  let schedule = SCHEDULES.find(s => s.userId === userId && s.date === dateStr);
+
+  if (schedule) {
+    // 2. Nếu có rồi -> Push thêm giờ vào (nếu chưa có)
+    if (!schedule.bookedSlots.includes(time)) {
+      schedule.bookedSlots.push(time);
+    }
+  } else {
+    // 3. Nếu chưa -> Tạo mới record
+    SCHEDULES.push({
+      userId: userId,
+      date: dateStr,
+      bookedSlots: [time]
+    });
+  }
+};
+
+const calculateStatus = (dateStr: string, timeStr: string, manualStatus?: boolean): boolean => {
+  // 1. Ưu tiên Manual Status nếu có (Tutor chỉnh tay)
+  if (manualStatus !== undefined) return manualStatus;
+
+  // 2. Logic tự động so sánh thời gian
+  try {
+    const now = new Date();
+    // Parse ngày giờ buổi học (Giả sử timeStr là "07:00 - 10:00")
+    const endTimeStr = timeStr.split('-')[1]?.trim() || timeStr.trim(); 
+    const [endH, endM] = endTimeStr.split(':').map(Number);
+    
+    // Tạo Date object cho thời gian kết thúc buổi học
+    const sessionEnd = new Date(dateStr);
+    sessionEnd.setHours(endH || 0, endM, 0);
+
+    // Nếu thời gian kết thúc nhỏ hơn hiện tại -> Đã xong
+    return sessionEnd < now;
+  } catch (e) {
+    return false;
+  }
+};
+
+// Hàm lấy danh sách giờ bận (Kết hợp cả Mock Data cứng và Dynamic Schedule)
+const getBusySlots = (tutorName: string, dateStr: string, studentId: string): Set<string> => {
+  const busySlots = new Set<string>();
+
+  // --- A. LẤY TỪ SCHEDULES (DYNAMIC - Mới thêm vào) ---
+  
+  // 1. Check lịch Tutor (Tìm ID của Tutor qua Name)
+  const tutorUser = USERS.find(u => u.fullName === tutorName); // Giả sử tên khớp fullName
+  if (tutorUser) {
+    const tutorSched = SCHEDULES.find(s => s.userId === tutorUser.id && s.date === dateStr);
+    if (tutorSched) tutorSched.bookedSlots.forEach(slot => busySlots.add(slot));
+  }
+
+  // 2. Check lịch Student
+  const studentSched = SCHEDULES.find(s => s.userId === studentId && s.date === dateStr);
+  if (studentSched) studentSched.bookedSlots.forEach(slot => busySlots.add(slot));
+
+
+  // --- B. QUÉT DỮ LIỆU CŨ (MOCK DATA CỐ ĐỊNH) ---
+  // (Vẫn cần giữ đoạn này vì COURSES của bạn đang hardcode lịch học cố định)
+
+  // 1. Check Lịch dạy cố định của Tutor trong các lớp
+  COURSES.forEach(course => {
+    course.classes.forEach(cls => {
+      if (cls.tutorName === tutorName) {
+        cls.sessions.forEach(s => {
+          if (s.date === dateStr) {
+            const startHour = s.time.split(' - ')[0]?.trim(); 
+            if (startHour) busySlots.add(startHour);
+          }
+        });
+      }
+    });
+  });
+
+  // 2. Check Lịch học của Sinh viên
+  const student = USERS.find(u => u.id === studentId);
+  if (student) {
+    COURSES.forEach(course => {
+        course.classes.forEach(cls => {
+            if (student.registeredClassIds.includes(cls.classId)) {
+                cls.sessions.forEach(s => {
+                    if (s.date === dateStr) {
+                        const startHour = s.time.split(' - ')[0]?.trim();
+                        if (startHour) busySlots.add(startHour);
+                    }
+                });
+            }
+        });
+    });
+  }
+
+  return busySlots;
+};
+
 
 const getDayNumber = (day: string): number => {
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -219,28 +316,51 @@ export const getStudentSchedule = (req: Request, res: Response) => {
   const studentId = req.query.studentId as string;
   const student = USERS.find(u => u.id === studentId);
 
-  if (!student) {
-    res.status(404).json({ success: false, message: "Student not found" });
-    return;
-  }
+  if (!student) { res.status(404).json({ success: false }); return; }
 
-  // Logic: Duyệt qua tất cả môn, tất cả lớp.
-  // Nếu lớp đó có trong danh sách đã đăng ký của SV -> Lấy hết session ra
   let allSessions: any[] = [];
 
+  // 1. LẤY LỊCH HỌC (Class Sessions) - Dựa vào registeredClassIds hoặc enrollments
+  // (Logic cũ của bạn đang dùng enrolledStudentIds hoặc registeredClassIds, giữ nguyên phần này)
   COURSES.forEach(course => {
     course.classes.forEach(cls => {
-      if (student.registeredClassIds.includes(cls.classId)) {
-        // Map thêm thông tin Môn học và Giảng viên vào từng buổi học để hiển thị
-        const sessionsWithInfo = cls.sessions.map(s => ({
-          ...s,
-          courseName: course.courseName,
-          courseCode: course.courseId,
-          tutorName: cls.tutorName,
-          classId: cls.classId
-        }));
-        allSessions = [...allSessions, ...sessionsWithInfo];
+      // Check xem SV có trong lớp này không (Cách check tùy thuộc vào data model hiện tại của bạn)
+      // Giả sử dùng enrolledStudentIds trong Class hoặc registeredClassIds trong User
+      const isEnrolled = cls.enrolledStudentIds.includes(studentId) || student.registeredClassIds.includes(cls.classId);
+      
+      if (isEnrolled) {
+        cls.sessions.forEach(s => {
+          const isDone = calculateStatus(s.date, s.time, s.isCompleted);
+          allSessions.push({
+            id: s.id,
+            date: s.date,
+            time: s.time,
+            courseName: course.courseName,
+            tutorName: cls.tutorName,
+            classId: cls.classId,
+            room: s.room,
+            type: 'Learning',
+            isCompleted: isDone
+          });
+        });
       }
+    });
+  });
+
+  // 2. LẤY LỊCH TƯ VẤN (Confirmed Consultations)
+  const myConsultations = CONSULTATIONS.filter(c => c.studentId === studentId && c.status === 'Confirmed');
+
+  myConsultations.forEach(c => {
+    allSessions.push({
+      id: c.id,
+      date: c.date,
+      time: c.time,
+      courseName: `Consultation: ${c.courseName}`,
+      tutorName: c.tutorName,
+      classId: "1-on-1",
+      room: c.room || "Online",
+      type: 'Consultation',
+      isCompleted: new Date(c.date) < new Date()
     });
   });
 
@@ -390,3 +510,271 @@ export const getMaterialDetail = (req: Request, res: Response) => {
   }
   res.status(200).json({ success: true, data: material });
 }
+
+export const getFeedbackCandidates = (req: Request, res: Response) => {
+  const studentId = req.query.studentId as string;
+
+  // Chỉ lấy các môn COMPLETED
+  const completedRecords = GRADES.filter(g => 
+    g.studentId === studentId && g.status === CourseStatus.COMPLETED
+  );
+
+  const result = completedRecords.map(record => {
+    const course = COURSES.find(c => c.courseId === record.courseId);
+    const existingFeedback = FEEDBACKS.find(f => f.studentId === studentId && f.courseId === record.courseId);
+
+    return {
+      courseId: record.courseId,
+      courseName: course?.courseName || record.courseId,
+      credits: course?.credits || 3,
+      tutorName: "Dr. John Smith", 
+      feedbackData: existingFeedback || null 
+    };
+  });
+
+  res.status(200).json({ success: true, data: result });
+};
+
+// 11. Submit/Update Feedback (Đã sửa lỗi TS2532)
+export const submitFeedback = (req: Request, res: Response) => {
+  const { studentId, courseId, ratings, comment, courseName } = req.body;
+
+  // Validate Course
+  const gradeRecord = GRADES.find(g => g.studentId === studentId && g.courseId === courseId);
+  if (!gradeRecord || gradeRecord.status !== CourseStatus.COMPLETED) {
+    res.status(400).json({ success: false, message: "Invalid course status." });
+    return;
+  }
+
+  // Tìm index và object cũ an toàn
+  const existingIndex = FEEDBACKS.findIndex(f => f.studentId === studentId && f.courseId === courseId);
+  const existingFeedback = FEEDBACKS[existingIndex]; // Có thể là undefined nếu index = -1
+
+  const feedbackData: Feedback = {
+    // SỬA LỖI Ở ĐÂY: Dùng optional chaining (?.id) để tránh lỗi Object possibly undefined
+    id: existingFeedback?.id || "FB-" + Date.now(),
+    studentId,
+    courseId,
+    courseName,
+    overallRating: ratings.overall,
+    teachingQuality: ratings.teaching,
+    materialQuality: ratings.material,
+    difficultyLevel: ratings.difficulty,
+    comment,
+    createdAt: new Date().toISOString()
+  };
+
+  if (existingIndex > -1) {
+    FEEDBACKS[existingIndex] = feedbackData;
+    res.status(200).json({ success: true, message: "Feedback updated successfully!" });
+  } else {
+    FEEDBACKS.push(feedbackData);
+    res.status(200).json({ success: true, message: "Feedback submitted successfully!" });
+  }
+};
+
+// 12. Delete Feedback
+export const deleteFeedback = (req: Request, res: Response) => {
+  const { studentId, courseId } = req.body;
+
+  const index = FEEDBACKS.findIndex(f => f.studentId === studentId && f.courseId === courseId);
+  if (index > -1) {
+    FEEDBACKS.splice(index, 1);
+    res.status(200).json({ success: true, message: "Feedback withdrawn successfully." });
+  } else {
+    res.status(404).json({ success: false, message: "Feedback not found." });
+  }
+};
+
+// 13. Get Feedback History
+export const getStudentFeedbackHistory = (req: Request, res: Response) => {
+  const studentId = req.query.studentId as string;
+  const history = FEEDBACKS.filter(f => f.studentId === studentId);
+  res.status(200).json({ success: true, data: history });
+};
+export const getStudentProfile = (req: Request, res: Response) => {
+  const studentId = req.query.studentId as string;
+  const user = USERS.find(u => u.id === studentId);
+
+  if (!user) {
+    res.status(404).json({ success: false, message: "User not found" });
+    return;
+  }
+
+  // Return only profile-relevant info (exclude password)
+  const profileData = {
+    fullName: user.fullName,
+    email: user.email,
+    studentIdDisplay: user.studentIdDisplay || "N/A",
+    major: user.major || "",
+    phoneNumber: user.phoneNumber || "",
+    currentYear: user.currentYear || "",
+    bio: user.bio || "",
+    avatarUrl: user.avatarUrl || ""
+  };
+
+  res.status(200).json({ success: true, data: profileData });
+};
+
+// NEW: Update Student Profile
+export const updateStudentProfile = (req: Request, res: Response) => {
+  const { studentId, fullName, phoneNumber, major, currentYear, bio } = req.body;
+
+  // Thay vì findIndex, ta dùng find để lấy trực tiếp object
+  const user = USERS.find(u => u.id === studentId);
+  
+  // Kiểm tra nếu user không tồn tại
+  if (!user) {
+    res.status(404).json({ success: false, message: "User not found" });
+    return;
+  }
+
+  // Update trực tiếp trên object (dữ liệu trong mảng USERS sẽ tự động cập nhật theo)
+  user.fullName = fullName;
+  user.phoneNumber = phoneNumber;
+  user.major = major;
+  user.currentYear = currentYear;
+  user.bio = bio;
+
+  res.status(200).json({ success: true, message: "Profile updated successfully!" });
+};
+export const uploadAvatar = (req: Request, res: Response) => {
+  const studentId = req.body.studentId;
+  const file = req.file;
+
+  if (!file) {
+    res.status(400).json({ success: false, message: "No file uploaded" });
+    return;
+  }
+
+  // Tạo URL để truy cập ảnh
+  // Ví dụ: http://localhost:5000/uploads/avatar-123.jpg
+  const avatarUrl = `http://localhost:5000/uploads/${file.filename}`;
+
+  // Cập nhật vào Database (Mock Data)
+  const user = USERS.find(u => u.id === studentId);
+  if (user) {
+    user.avatarUrl = avatarUrl;
+    res.status(200).json({ success: true, avatarUrl: avatarUrl, message: "Avatar updated!" });
+  } else {
+    res.status(404).json({ success: false, message: "User not found" });
+  }
+};
+export const checkTutorAvailability = (req: Request, res: Response) => {
+  const { tutorName, date, studentId } = req.query;
+  if (!tutorName || !date || !studentId) { res.status(400).json({success:false}); return; }
+  const busySlots = getBusySlots(tutorName as string, date as string, studentId as string);
+  res.status(200).json({ success: true, data: Array.from(busySlots) });
+};
+
+// 15. Đặt lịch hẹn (Đã thêm VALIDATION CHECK)
+export const bookConsultation = (req: Request, res: Response) => {
+  const { studentId, tutorName, courseName, date, time, reason } = req.body;
+
+  const student = USERS.find(u => u.id === studentId);
+  if (!student) { res.status(404).json({success: false, message: "Student not found"}); return; }
+
+  // 1. Tìm thông tin Tutor (để lấy tutorId)
+  // Lưu ý: Trong thực tế FE nên gửi tutorId lên luôn. Ở đây tìm tạm qua tên.
+  const tutorUser = USERS.find(u => u.fullName === tutorName && u.role === Role.TUTOR);
+  if (!tutorUser) {
+      res.status(404).json({ success: false, message: "Tutor not found" });
+      return;
+  }
+
+  // 2. CHECK TRÙNG LỊCH (Cả Student và Tutor)
+  // Check lịch Student
+  const studentBusySlots = getBusySlots("ANY", date, studentId); // Hàm getBusySlots cần sửa để hỗ trợ check chung
+  // (Hoặc dùng logic check đơn giản hơn tại đây)
+  const isStudentBusy = checkScheduleConflict(studentId, date, time); // Hàm giả định, xem bên dưới
+  if (isStudentBusy) {
+      res.status(400).json({ success: false, message: "You have a schedule conflict at this time." });
+      return;
+  }
+
+  // Check lịch Tutor
+  const isTutorBusy = checkScheduleConflict(tutorUser.id, date, time);
+  if (isTutorBusy) {
+      res.status(400).json({ success: false, message: "Tutor is busy at this time." });
+      return;
+  }
+
+  // 3. TẠO REQUEST (PENDING)
+  // KHÔNG markSlotAsTaken ở đây. Chỉ mark khi Tutor approve.
+  
+  const newConsultation: Consultation = {
+    id: "CS-" + Date.now(),
+    studentId,
+    tutorName,
+    tutorId: tutorUser.id,
+    courseName, // Môn học cần tư vấn
+    date,
+    time,
+    status: "Pending",
+    reason: reason || ""
+  };
+
+  CONSULTATIONS.push(newConsultation);
+
+  res.status(200).json({ success: true, message: "Consultation request sent! Waiting for tutor approval." });
+};
+
+const checkScheduleConflict = (userId: string, date: string, time: string): boolean => {
+    // 1. Check trong SCHEDULES (Lịch học/dạy chính thức)
+    const schedule = SCHEDULES.find(s => s.userId === userId && s.date === date);
+    if (schedule && schedule.bookedSlots.includes(time)) return true;
+
+    // 2. Check trong CONSULTATIONS (Các lịch hẹn ĐÃ CONFIRM)
+    // Nếu user là student hoặc tutor trong cuộc hẹn đó
+    const hasConsultation = CONSULTATIONS.some(c => 
+        (c.studentId === userId || c.tutorId === userId) && // User tham gia (là Student hoặc Tutor)
+        c.status === 'Confirmed' &&
+        c.date === date &&
+        c.time === time
+    );
+    if (hasConsultation) return true;
+
+    return false;
+}
+
+export const getStudentNotifications = (req: Request, res: Response) => {
+  const studentId = req.query.studentId as string;
+  
+  // A. Lấy lịch sử đặt lịch tư vấn (Booking Requests)
+  const bookings = CONSULTATIONS.filter(c => c.studentId === studentId);
+  
+  // B. Lấy thông báo hệ thống (System Updates - do Tutor đổi lịch)
+  const updates = NOTIFICATIONS.filter(n => n.studentId === studentId);
+
+  // C. Gộp lại thành danh sách chung
+  // Cần map bookings sang cấu trúc chung để tránh lỗi hiển thị nếu field khác nhau
+  const formattedBookings = bookings.map(b => ({
+    id: b.id,
+    tutorName: b.tutorName,
+    courseName: b.courseName,
+    date: b.date,
+    time: b.time,
+    status: b.status, // 'Pending' | 'Confirmed' | 'Rejected'
+    reason: b.reason || "", // Lý do đặt lịch
+    isRead: true // Mặc định
+  }));
+
+  const formattedUpdates = updates.map(u => ({
+    id: u.id,
+    tutorName: u.tutorName,
+    courseName: u.courseName,
+    date: u.date,
+    time: u.time,
+    status: u.status, // 'Update'
+    reason: u.reason, // Nội dung thông báo đổi lịch
+    isRead: u.isRead
+  }));
+
+  const combined = [...formattedBookings, ...formattedUpdates];
+  
+  // Sắp xếp mới nhất lên đầu (Dựa vào ID timestamp hoặc date)
+  // Ở đây dùng date của sự kiện để sort
+  combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  res.status(200).json({ success: true, data: combined });
+};

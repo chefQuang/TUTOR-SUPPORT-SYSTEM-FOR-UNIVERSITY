@@ -14,6 +14,12 @@ export interface User {
   role: Role;
   email: string;
   registeredClassIds: string[]; // Thêm trường này để lưu môn học sinh viên đã đăng ký
+  studentIdDisplay?: string; // e.g., "2012345"
+  major?: string;
+  phoneNumber?: string;
+  currentYear?: string;
+  bio?: string;
+  avatarUrl?: string;
 }
 
 // Session: Một buổi học cụ thể (Theo Class Diagram)
@@ -139,6 +145,59 @@ export interface Submission {
 
 export const SUBMISSIONS: Submission[] = []; // Khởi tạo rỗng
 
+//Feedback
+export interface Feedback {
+  id: string;
+  studentId: string; // Used for duplicate checks, but treated anonymously in reports
+  courseId: string;
+  courseName: string; // Stored for easier display
+  overallRating: number;
+  teachingQuality: number;
+  materialQuality: number;
+  difficultyLevel: number;
+  comment: string;
+  createdAt: string;
+}
+
+export interface Consultation {
+  id: string;
+  studentId: string;
+  tutorName: string; // Dùng tên Tutor để map đơn giản theo yêu cầu
+  tutorId: string;   // Lớp liên quan
+  courseName: string;
+  date: string;      // YYYY-MM-DD
+  time: string;      // HH:mm
+  room?: string;      // Link Google Meet hoặc phòng
+  status: "Pending" | "Confirmed" | "Rejected";
+  reason?: string;
+}
+
+export interface DailySchedule {
+  userId: string;
+  date: string;        // YYYY-MM-DD
+  bookedSlots: string[]; // ["07:00", "09:00", "14:00"] - Các giờ đã bị chiếm
+}
+
+export interface Notification {
+  id: string;
+  studentId: string;
+  tutorName: string;
+  courseName: string;
+  date: string;
+  time: string;
+  status: "Update" | "Cancelled" | "System"; // Trạng thái đặc biệt cho thông báo
+  reason: string; // Nội dung thông báo
+  isRead: boolean;
+}
+
+export const NOTIFICATIONS: Notification[] = [];
+
+
+export const FEEDBACKS: Feedback[] = [];
+export const CONSULTATIONS: Consultation[] = [];
+export const SCHEDULES: DailySchedule[] = [];
+
+
 
 // Mock Data Users (Cập nhật thêm mảng rỗng cho student)
 export const USERS: User[] = [
@@ -149,7 +208,12 @@ export const USERS: User[] = [
     fullName: "Nguyễn Văn A",
     role: Role.STUDENT,
     email: "studentA@hcmut.edu.vn",
-    registeredClassIds: [] 
+    registeredClassIds: [],
+    studentIdDisplay: "2013456",
+    major: "Computer Science",
+    phoneNumber: "+84 909 123 456",
+    currentYear: "Year 3",
+    bio: "Passionate about AI and Software Engineering. Looking for tutors in advanced algorithms.",
   },
   {
     id: "TT001",
@@ -158,7 +222,7 @@ export const USERS: User[] = [
     fullName: "Dr. John Smith",
     role: Role.TUTOR,
     email: "john.smith@hcmut.edu.vn",
-    registeredClassIds: []
+    registeredClassIds: ["CL_DSA_01"]
   }
   /*{
     id: "AD001",
@@ -212,12 +276,20 @@ export const COURSES: Course[] = [
     classes: [
       {
         classId: "CL_DSA_01",
-        tutorName: "Dr. Emily Tran",
-        tutorId: "TT003",
+        tutorName: "Dr. John Smith",
+        tutorId: "TT001",
         capacity: 40,
-        enrolledStudentIds: [],
+        enrolledStudentIds: ["ST001"],
         scheduleOverview: "Wed 13:00 - 16:00",
-        sessions: []
+        sessions: [
+          { id: "S01", date: "2025-11-03", time: "13:00 - 16:00", room: "H6-301", isCompleted: true },
+          { id: "S02", date: "2025-11-10", time: "13:00 - 16:00", room: "H6-301", isCompleted: true },
+          
+          // Buổi học tương lai (Upcoming)
+          { id: "S03", date: "2025-12-05", time: "13:00 - 16:00", room: "H6-301", isCompleted: false },
+          { id: "S04", date: "2025-12-12", time: "13:00 - 16:00", room: "H6-301", isCompleted: false },
+          { id: "S05", date: "2025-12-19", time: "13:00 - 16:00", room: "H6-301", isCompleted: false }
+        ]
       }
     ]
   },
@@ -257,8 +329,9 @@ export const GRADES: StudentCoursePerformance[] = [
     classId: "CL_DSA_01",
     status: CourseStatus.STUDYING,
     components: [
-      { name: "Lab 1", weight: 10, score: 9.5 },
-      { name: "Lab 2", weight: 10, score: 8.0 },
+      { name: "Lab 1", weight: 0, score: 9.5 },
+      { name: "Lab 2", weight: 0, score: 8.0 },
+      { name: "Assignment", weight: 20, score: 0},
       { name: "Midterm", weight: 30, score: 7.5 },
       { name: "Final Exam", weight: 50, score: 0 } // Chưa thi
     ]

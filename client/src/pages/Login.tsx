@@ -25,7 +25,7 @@ const Login: React.FC = () => {
         localStorage.setItem('user', JSON.stringify(user));
 
         if (user.role === 'student') navigate('/student/home');
-        else if (user.role === 'tutor') navigate('/tutor/home');
+        else if (user.role === 'tutor') navigate('/tutor/schedule');
         else if (user.role === 'admin') navigate('/admin/dashboard');
       }
     } catch (err) {

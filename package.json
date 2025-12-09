@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "lucide-react": "^0.555.0",
+    "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "@types/multer": "^2.0.0"
+  }
+}

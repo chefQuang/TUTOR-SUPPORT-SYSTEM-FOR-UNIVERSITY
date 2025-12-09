@@ -14,8 +14,11 @@
   display: flex;
   flex-direction: column;
   border-right: 1px solid #eaeaea;
-  position: fixed;
-  height: 100%;
+  position: fixed; /* Cố định sidebar */
+  top: 0;
+  left: 0;
+  height: 100%;    /* Full chiều cao */
+  z-index: 9999;   /* Lớp cao nhất để đè lên mọi nội dung khác */
 }
 
 .brand {
@@ -86,6 +89,8 @@
   background-color: #f8f9fa; /* Màu nền tách biệt với sidebar trắng */
   min-height: 100vh;
   box-sizing: border-box;
+  position: relative;
+  z-index: 1;
 }
 
 .page-header {

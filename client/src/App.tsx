@@ -10,6 +10,16 @@ import StudentMaterials from './pages/StudentMaterials';
 import MyCourses from './pages/MyCourses';
 import AssignmentDetail from './pages/AssignmentDetail';
 import QuizDetail from './pages/QuizDetail';
+import TutorSchedule from './pages/TutorSchedule';
+import StudentProfile from './pages/StudentProfile';
+import StudentFeedback from './pages/StudentFeedback';
+import BookingConsultation from './pages/BookingConsultation';
+import TutorInbox from './pages/TutorInbox';
+import StudentInbox from './pages/StudentInbox';
+import TutorProgress from './pages/TutorProgress';
+import TutorMaterials from './pages/TutorMaterials';
+import TutorClasses  from './pages/TutorClasses';
+import TutorAssignmentView from './pages/TutorAssignmentView';
 import './App.css'; 
 
 function App() {
@@ -48,12 +58,43 @@ function App() {
         <Route path="/student/courses/:courseId/quiz/:itemId" element={
           <PrivateRoute><QuizDetail /></PrivateRoute>
         } />
+        <Route path="/student/feedback" element={
+          <PrivateRoute><StudentFeedback /></PrivateRoute>
+        } />
+        <Route path="/student/profile" element={
+          <PrivateRoute><StudentProfile /></PrivateRoute>
+        } />
+        <Route path="/student/booking" element={
+          <PrivateRoute><BookingConsultation /></PrivateRoute>
+        } />
+        <Route path="/student/inbox" element={
+          <PrivateRoute><StudentInbox /></PrivateRoute>
+        } />
         
         <Route path="/tutor/home" element={
           <PrivateRoute>
             <TutorDashboard />
           </PrivateRoute>
         } />
+        <Route path="/tutor/schedule" element={
+          <PrivateRoute><TutorSchedule /></PrivateRoute>
+        } />
+        <Route path="/tutor/requests" element={
+          <PrivateRoute><TutorInbox /></PrivateRoute>
+        } />
+        <Route path="/tutor/progress" element={
+          <PrivateRoute><TutorProgress /></PrivateRoute>
+        } />
+        <Route path="/tutor/materials" element={
+          <PrivateRoute><TutorMaterials /></PrivateRoute>
+        } />
+        <Route path="/tutor/classes" element={
+          <PrivateRoute><TutorClasses /></PrivateRoute>
+        } />
+        <Route 
+          path="/tutor/class/:classId/assignment/:assignmentId" 
+          element={<PrivateRoute><TutorAssignmentView /></PrivateRoute>} 
+        />
         
         <Route path="/admin/dashboard" element={
           <PrivateRoute>

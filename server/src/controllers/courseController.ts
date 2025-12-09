@@ -64,22 +64,37 @@ export const getSubmissionStatus = (req: Request, res: Response) => {
 
 // 5. Nộp bài Assignment
 export const submitAssignment = (req: Request, res: Response) => {
-  const { studentId, itemId, fileName } = req.body;
-  
-  // Xóa bài cũ nếu nộp lại
-  const existingIdx = SUBMISSIONS.findIndex(s => s.studentId === studentId && s.itemId === itemId);
-  if (existingIdx > -1) SUBMISSIONS.splice(existingIdx, 1);
+  // Nhận file từ Multer
+  const file = req.file;
+  // Nhận các thông tin khác từ body (do FormData gửi lên)
+  const { studentId, itemId } = req.body;
 
-  const newSub: Submission = {
+  if (!file) {
+    res.status(400).json({ success: false, message: "No file uploaded." });
+    return;
+  }
+
+  // TẠO URL DOWNLOAD THẬT
+  const fileUrl = `http://localhost:5000/uploads/${file.filename}`;
+
+  // Kiểm tra xem đã nộp chưa để update hoặc tạo mới
+  const existingIndex = SUBMISSIONS.findIndex(s => s.studentId === studentId && s.itemId === itemId);
+
+  const newSubmission: Submission = {
     studentId,
     itemId,
     submittedAt: new Date().toISOString(),
-    status: "Pending Grading", // Sửa từ "Submitted" thành "Pending Grading" cho đúng yêu cầu
-    fileUrl: fileName
+    status: "Pending Grading",
+    fileUrl: fileUrl, // <--- LƯU URL THẬT VÀO ĐÂY
   };
-  
-  SUBMISSIONS.push(newSub);
-  res.status(200).json({ success: true, message: "Assignment submitted successfully!", data: newSub });
+
+  if (existingIndex > -1) {
+    SUBMISSIONS[existingIndex] = newSubmission; // Ghi đè bài cũ
+  } else {
+    SUBMISSIONS.push(newSubmission); // Thêm mới
+  }
+
+  res.status(200).json({ success: true, message: "Assignment submitted!", data: newSubmission });
 };
 
 //Xóa bài đã nộp

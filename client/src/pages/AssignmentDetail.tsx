@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import StudentLayout from './StudentLayout';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { Upload, FileText, Download } from 'lucide-react';
 import './AssignmentDetail.css';
 
 interface AssignmentData { id: string; title: string; description: string; dueDate: string; }
@@ -37,22 +38,33 @@ const AssignmentDetail = () => {
   }, [courseId, itemId]);
 
   const handleSubmit = async () => {
-    if (!file) return;
+    if (!file) {
+      alert("Please select a file first.");
+      return;
+    }
     if (!window.confirm("Confirm submission?")) return;
 
+    const formData = new FormData();
+    // 'submission' phải trùng tên với upload.single('submission') ở server.ts
+    formData.append('submission', file); 
+    formData.append('studentId', user.id);
+    formData.append('itemId', itemId || ''); // itemId lấy từ useParams
+
     try {
-      const res = await axios.post('http://localhost:5000/api/courses/submit-assignment', {
-        studentId: user.id,
-        itemId: itemId,
-        fileName: file.name
+      const res = await axios.post('http://localhost:5000/api/courses/submit-assignment', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' } // Bắt buộc header này
       });
+
       if (res.data.success) {
-        alert("Submitted!");
+        alert("Submitted successfully!");
         setSubmission(res.data.data);
         setIsEditing(false);
         setFile(null);
       }
-    } catch (err) { alert("Error"); }
+    } catch (err: any) { 
+        console.error(err);
+        alert(err.response?.data?.message || "Submission failed"); 
+    }
   };
 
   const handleDeleteSubmission = async () => {
@@ -73,6 +85,13 @@ const AssignmentDetail = () => {
     } catch (err) {
       alert("Failed to remove submission.");
     }
+  };
+
+  const handleRealDownload = (url: string) => {
+    if(!url) return;
+    const link = document.createElement('a'); link.href = url;
+    link.setAttribute('download', ''); link.setAttribute('target', '_blank');
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
   };
 
   if (!assignment) return <div>Loading...</div>;
@@ -112,11 +131,21 @@ const AssignmentDetail = () => {
                 <th>File Submissions</th>
                 <td>
                   {submission ? (
-                    <div className="file-display">
-                      <span className="file-icon">📄</span>
-                      <a href="#" className="file-link" onClick={(e) => { e.preventDefault(); alert("Downloading " + submission.fileUrl); }}>
-                        {submission.fileUrl}
-                      </a>
+                    <div className="file-display" style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                      <FileText size={18} color="#0033cc"/>
+                      <span style={{fontWeight: 600, color: '#334155'}}>
+                        {submission.fileUrl.split('/').pop() || 'submitted_file'}
+                      </span>
+                      <button 
+                        onClick={() => handleRealDownload(submission.fileUrl)}
+                        style={{
+                          background: 'transparent', border: 'none', cursor: 'pointer',
+                          color: '#0033cc', display: 'flex', alignItems: 'center', gap: '4px',
+                          fontWeight: 600, fontSize: '0.85rem', marginLeft: '10px'
+                        }}
+                      >
+                        <Download size={14}/> Download
+                      </button>
                     </div>
                   ) : '-'}
                 </td>

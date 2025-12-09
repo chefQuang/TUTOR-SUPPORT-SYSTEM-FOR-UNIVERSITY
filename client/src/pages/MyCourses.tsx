@@ -9,7 +9,7 @@ interface CourseMin {
   classId: string; tutorName: string; // Thêm 2 trường này
 }
 interface CourseSection { id: string; title: string; items: CourseItem[]; }
-interface CourseItem { id: string; type: string; title: string; }
+interface CourseItem { id: string; type: string; title: string; fileUrl: string; }
 
 const MyCourses = () => {
   const [view, setView] = useState<'list' | 'detail'>('list');
@@ -54,15 +54,22 @@ const MyCourses = () => {
 
   const handleItemClick = (item: CourseItem) => {
     if (item.type === 'file') {
-      alert(`Downloading document: ${item.title}...`);
+      handleRealDownload(item.fileUrl);
       // Thực tế: window.open(item.url)
     } else if (item.type === 'assignment') {
       // Chuyển sang trang Assignment riêng biệt
       navigate(`/student/courses/${selectedCourse?.courseId}/assignment/${item.id}`);
     } else if (item.type === 'quiz') {
-      // Logic Quiz có thể làm trang riêng tương tự, ở đây demo alert
       navigate(`/student/courses/${selectedCourse?.courseId}/quiz/${item.id}`);
     }
+  };
+
+  // Hàm xử lý download
+  const handleRealDownload = (url: string) => {
+    if(!url) return;
+    const link = document.createElement('a'); link.href = url;
+    link.setAttribute('download', ''); link.setAttribute('target', '_blank');
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
   };
 
   // --- RENDER LIST ---

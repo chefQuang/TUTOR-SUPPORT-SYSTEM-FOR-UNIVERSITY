@@ -39,7 +39,9 @@ const StudentSchedule = () => {
   const firstDay = getFirstDayOfMonth(year, month); // 0 = Sunday
 
   const changeMonth = (offset: number) => setCurrentDate(new Date(year, month + offset, 1));
-  const formatDate = (date: Date) => date.toISOString().split('T')[0];
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-CA'); // Trả về YYYY-MM-DD theo múi giờ máy tính người dùng
+}
   const isSameDate = (d1: Date, d2: Date) => d1.getDate() === d2.getDate() && d1.getMonth() === d2.getMonth() && d1.getFullYear() === d2.getFullYear();
 
   const selectedSessions = sessions.filter(s => s.date === formatDate(selectedDate));

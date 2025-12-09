@@ -52,9 +52,25 @@ const StudentMaterials = () => {
     // Thực tế sẽ mở Modal PDF viewer
   };
 
-  const handleDownload = () => {
-    alert("Downloading file...");
-    // window.open(selectedMat?.downloadUrl);
+  const handleRealDownload = (url: string, filename: string) => {
+    // 1. Kiểm tra URL hợp lệ
+    if (!url || url === '#' || !url.startsWith('http')) {
+      alert("File not available or invalid URL."); 
+      return; 
+    }
+
+    // 2. Tạo thẻ a ảo để tải
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename); // Gợi ý tên file
+    link.setAttribute('target', '_blank');   // Mở tab mới (dự phòng)
+    document.body.appendChild(link);
+    
+    // 3. Kích hoạt click
+    link.click();
+    
+    // 4. Dọn dẹp
+    document.body.removeChild(link);
   };
 
   // --- VIEW: GRID LIST (UPDATE)---
@@ -154,7 +170,7 @@ const renderGrid = () => (
               </div>
               <div>
                 <button className="btn-review" onClick={handlePreview}>Review (5 pages)</button>
-                <button className="btn-download" onClick={handleDownload}>Download PDF</button>
+                <button className="btn-download" onClick={() => selectedMat && handleRealDownload(selectedMat.downloadUrl, selectedMat.title)}>Download PDF</button>
               </div>
             </div>
           </div>
