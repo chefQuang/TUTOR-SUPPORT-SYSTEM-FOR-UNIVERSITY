@@ -26,26 +26,25 @@
   padding: 12px 24px;
   background: white;
   border-radius: 50px;
-  border: 1px solid #e2e8f0; /* Viền mỏng tinh tế */
+  border: 1px solid #e2e8f0;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-weight: 600;
   color: #334155;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); /* Bóng nhẹ */
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Transition mượt */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Hiệu ứng Hover vào Trigger */
 .custom-dropdown-trigger:hover {
-  transform: translateY(-2px); /* Nổi lên nhẹ */
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Bóng sâu hơn */
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   border-color: #cbd5e1;
   color: #0033cc;
 }
 
-/* Mũi tên xoay khi mở */
 .dropdown-arrow {
   transition: transform 0.3s ease;
   font-size: 0.8rem;
@@ -68,9 +67,7 @@
   padding: 8px;
   border: 1px solid rgba(255,255,255,0.8);
   
-  /* --- THÊM DÒNG NÀY --- */
-  z-index: 200; /* Phải cao hơn z-index: 90 của lớp phủ */
-  /* -------------------- */
+  z-index: 200;
 
   opacity: 0;
   visibility: hidden;
@@ -100,9 +97,9 @@
 
 /* Hover vào từng dòng */
 .dropdown-item:hover {
-  background-color: #eff6ff; /* Xanh rất nhạt */
+  background-color: #eff6ff;
   color: #0033cc;
-  padding-left: 28px; /* Hiệu ứng trượt chữ sang phải */
+  padding-left: 28px;
 }
 
 /* Dòng đang được chọn */
@@ -110,7 +107,7 @@
   background: linear-gradient(135deg, #0033cc 0%, #2563eb 100%);
   color: white;
   font-weight: 700;
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3); /* Bóng đổ cho item active */
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
 }
 
 /* Dấu tích cho dòng đang chọn */
@@ -167,7 +164,7 @@
 .mat-detail-view { animation: fadeIn 0.4s ease-out; }
 
 .hero-section {
-  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); /* Màu tím than sang trọng */
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
   border-radius: 24px;
   padding: 40px;
   display: flex; gap: 40px;
@@ -201,7 +198,7 @@
 .price-value { font-size: 1.5rem; font-weight: 800; color: #0033cc; }
 
 .btn-download {
-  background: #fbbf24; /* Màu vàng nổi bật */
+  background: #fbbf24;
   color: #1e293b;
   padding: 12px 30px; border-radius: 50px;
   font-weight: 800; border: none; cursor: pointer;
